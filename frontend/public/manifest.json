@@ -1,0 +1,41 @@
+{
+  "name": "Fitness Coach",
+  "short_name": "Fitness",
+  "description": "AI-powered fitness coach and workout tracker",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Today's Workout",
+      "short_name": "Workout",
+      "description": "Start today's workout",
+      "url": "/workout",
+      "icons": [{ "src": "/icons/workout-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "AI Chat",
+      "short_name": "Chat",
+      "description": "Chat with fitness AI",
+      "url": "/chat",
+      "icons": [{ "src": "/icons/chat-96.png", "sizes": "96x96" }]
+    }
+  ],
+  "categories": ["fitness", "health", "productivity"]
+}

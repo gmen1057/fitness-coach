@@ -1,0 +1,30 @@
+# =============================================================================
+# Base Dependencies - Core functionality without AI providers
+# =============================================================================
+# Use this for minimal installation or if you want to add providers separately
+
+# Web framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+sse-starlette>=2.2.0
+
+# Database
+sqlalchemy[asyncio]>=2.0.36
+asyncpg>=0.30.0
+alembic>=1.14.0
+
+# Configuration
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
+
+# HTTP client
+httpx>=0.28.0
+
+# Rate limiting
+slowapi>=0.1.9
+
+# Knowledge graph (lightweight, included by default)
+networkx>=3.4
+
+# Utilities
+python-dateutil>=2.9.0

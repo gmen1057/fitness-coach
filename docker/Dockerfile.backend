@@ -1,0 +1,103 @@
+# =============================================================================
+# Open Source Fitness Coach - Backend Dockerfile
+# =============================================================================
+# Multi-stage build for optimized image size and security
+# Supports configurable extras: cloud, ollama, all
+#
+# Build examples:
+#   docker build -f docker/Dockerfile.backend -t fitness-coach:latest .
+#   docker build --build-arg INSTALL_EXTRAS=cloud -t fitness-coach:cloud .
+#   docker build --build-arg INSTALL_EXTRAS=all -t fitness-coach:full .
+
+# =============================================================================
+# Stage 1: Build Stage
+# =============================================================================
+FROM python:3.12-slim AS builder
+
+# Build arguments
+ARG INSTALL_EXTRAS="cloud"
+
+WORKDIR /build
+
+# Install system dependencies for building Python packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy only requirements first for better layer caching
+COPY backend/requirements/ ./requirements/
+
+# Create virtual environment and install dependencies
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install base dependencies
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
+# Install dependencies based on extras
+RUN if [ "$INSTALL_EXTRAS" = "cloud" ]; then \
+        pip install --no-cache-dir -r requirements/cloud.txt; \
+    elif [ "$INSTALL_EXTRAS" = "ollama" ]; then \
+        pip install --no-cache-dir -r requirements/ollama.txt; \
+    elif [ "$INSTALL_EXTRAS" = "all" ]; then \
+        pip install --no-cache-dir -r requirements/all.txt; \
+    else \
+        pip install --no-cache-dir -r requirements/base.txt; \
+    fi
+
+# =============================================================================
+# Stage 2: Runtime Stage
+# =============================================================================
+FROM python:3.12-slim
+
+# Metadata
+LABEL maintainer="Open Source Fitness Coach"
+LABEL description="AI-powered fitness assistant backend"
+LABEL version="1.0.0"
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security
+RUN groupadd -r fitness && useradd -r -g fitness -u 1000 fitness
+
+# Create application directory
+WORKDIR /app
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy application code
+COPY backend/app ./app
+COPY backend/alembic ./alembic
+COPY backend/alembic.ini ./alembic.ini
+
+# Create directories for data and logs
+RUN mkdir -p /app/data /app/logs && \
+    chown -R fitness:fitness /app
+
+# Switch to non-root user
+USER fitness
+
+# Environment variables (can be overridden)
+ENV FITNESS_HOST=0.0.0.0
+ENV FITNESS_PORT=8000
+ENV FITNESS_DEBUG=false
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Run database migrations and start server
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"]

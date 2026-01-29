@@ -1,0 +1,17 @@
+# =============================================================================
+# Ollama Dependencies - Local AI with privacy
+# =============================================================================
+# Use this for fully local deployment with Ollama
+
+# Base dependencies
+-r base.txt
+
+# Note: Ollama doesn't require Python packages
+# Just install Ollama binary and pull models:
+#   docker pull ollama/ollama
+#   docker run -d -v ollama:/root/.ollama -p 11434:11434 ollama/ollama
+#   docker exec -it <container> ollama pull llama3.2
+#   docker exec -it <container> ollama pull nomic-embed-text
+
+# Vector search (optional, for RAG)
+pgvector>=0.3.0

@@ -1,0 +1,112 @@
+# =============================================================================
+# Open Source Fitness Coach - Development Docker Compose
+# =============================================================================
+# Development configuration with hot-reload and debugging
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# Features:
+#   - Volume mounts for hot-reload
+#   - Debug mode enabled
+#   - Exposed PostgreSQL port
+#   - No security hardening (for easier development)
+#   - Reduced resource limits
+
+services:
+  postgres:
+    ports:
+      # Expose PostgreSQL to host for direct access
+      - "5432:5432"
+
+    # Remove security hardening for development
+    security_opt: []
+
+    # Reduced resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+      args:
+        # Install all extras for development
+        INSTALL_EXTRAS: all
+
+    # Enable debug mode
+    environment:
+      FITNESS_DEBUG: "true"
+      FITNESS_CORS_ORIGINS: '["http://localhost:3000", "http://localhost:3001"]'
+
+    # Volume mounts for hot-reload
+    volumes:
+      - ../backend/app:/app/app:ro
+      - ../backend/alembic:/app/alembic:ro
+      - ../backend/alembic.ini:/app/alembic.ini:ro
+      - app_data:/app/data
+      - app_logs:/app/logs
+
+    # Override CMD to enable reload
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --proxy-headers --forwarded-allow-ips='*'"
+
+    # Remove security hardening for development
+    security_opt: []
+    cap_drop: []
+    cap_add: []
+
+    # Reduced resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+# =============================================================================
+# Additional Development Services (optional)
+# =============================================================================
+  # Uncomment to enable Ollama for local AI
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: fitness-ollama
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   ports:
+  #     - "11434:11434"
+  #   networks:
+  #     - fitness-network
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: '4'
+  #         memory: 8G
+
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fitness-pgadmin
+    restart: unless-stopped
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@fitness.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+
+    ports:
+      - "5050:80"
+
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+    networks:
+      - fitness-network
+
+volumes:
+  # ollama_data:
+  #   name: fitness-ollama-data
+  pgadmin_data:
+    name: fitness-pgadmin-data

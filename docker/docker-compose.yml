@@ -1,0 +1,219 @@
+# =============================================================================
+# Open Source Fitness Coach - Production Docker Compose
+# =============================================================================
+# Production-ready configuration with security hardening
+#
+# Usage:
+#   1. Copy .env.example to .env and configure
+#   2. Start services: docker compose up -d
+#   3. Check logs: docker compose logs -f
+#   4. Stop services: docker compose down
+#
+# Services:
+#   - backend: FastAPI application (port 8000)
+#   - frontend: Next.js application (port 3000)
+#   - postgres: PostgreSQL 16 with pgvector extension
+#
+# Volumes:
+#   - postgres_data: Database persistence
+#   - app_data: Application data (RAG vectors, logs)
+
+services:
+  # ===========================================================================
+  # PostgreSQL Database with pgvector
+  # ===========================================================================
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: fitness-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fitness}
+      POSTGRES_USER: ${POSTGRES_USER:-fitness}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fitness} -d ${POSTGRES_DB:-fitness}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    networks:
+      - fitness-network
+
+  # ===========================================================================
+  # FastAPI Backend
+  # ===========================================================================
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+      args:
+        INSTALL_EXTRAS: ${INSTALL_EXTRAS:-cloud}
+
+    image: fitness-coach:${VERSION:-latest}
+    container_name: fitness-backend
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      # Database
+      FITNESS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-fitness}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-fitness}
+
+      # AI Provider (anthropic, openai, ollama)
+      FITNESS_AI_PROVIDER: ${FITNESS_AI_PROVIDER:-anthropic}
+      FITNESS_ANTHROPIC_API_KEY: ${FITNESS_ANTHROPIC_API_KEY:-}
+      FITNESS_ANTHROPIC_MODEL: ${FITNESS_ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
+      FITNESS_OPENAI_API_KEY: ${FITNESS_OPENAI_API_KEY:-}
+      FITNESS_OPENAI_MODEL: ${FITNESS_OPENAI_MODEL:-gpt-4o}
+      FITNESS_OLLAMA_BASE_URL: ${FITNESS_OLLAMA_BASE_URL:-http://ollama:11434}
+      FITNESS_OLLAMA_MODEL: ${FITNESS_OLLAMA_MODEL:-llama3.2}
+
+      # Embedding Provider (openai, ollama, none)
+      FITNESS_EMBEDDING_PROVIDER: ${FITNESS_EMBEDDING_PROVIDER:-openai}
+      FITNESS_OPENAI_EMBEDDING_MODEL: ${FITNESS_OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
+      FITNESS_OLLAMA_EMBEDDING_MODEL: ${FITNESS_OLLAMA_EMBEDDING_MODEL:-nomic-embed-text}
+
+      # RAG Provider (pgvector, sqlite, none)
+      FITNESS_RAG_PROVIDER: ${FITNESS_RAG_PROVIDER:-pgvector}
+      FITNESS_RAG_COLLECTION: ${FITNESS_RAG_COLLECTION:-fitness_memory}
+      FITNESS_EMBEDDING_DIMENSIONS: ${FITNESS_EMBEDDING_DIMENSIONS:-1536}
+
+      # Application
+      FITNESS_HOST: 0.0.0.0
+      FITNESS_PORT: 8000
+      FITNESS_DEBUG: ${FITNESS_DEBUG:-false}
+      FITNESS_CORS_ORIGINS: ${FITNESS_CORS_ORIGINS:-["http://localhost:3000"]}
+
+      # Rate Limiting
+      FITNESS_RATE_LIMIT_CHAT: ${FITNESS_RATE_LIMIT_CHAT:-10/minute}
+      FITNESS_RATE_LIMIT_DEFAULT: ${FITNESS_RATE_LIMIT_DEFAULT:-100/minute}
+
+    volumes:
+      - app_data:/app/data
+      - app_logs:/app/logs
+
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    networks:
+      - fitness-network
+
+  # ===========================================================================
+  # Next.js Frontend
+  # ===========================================================================
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+
+    image: fitness-coach-frontend:${VERSION:-latest}
+    container_name: fitness-frontend
+    restart: unless-stopped
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+    networks:
+      - fitness-network
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  fitness-network:
+    driver: bridge
+    name: fitness-network
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    name: fitness-postgres-data
+    driver: local
+
+  app_data:
+    name: fitness-app-data
+    driver: local
+
+  app_logs:
+    name: fitness-app-logs
+    driver: local

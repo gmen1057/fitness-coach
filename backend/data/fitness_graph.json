@@ -1,0 +1,691 @@
+{
+  "nodes": [
+    {
+      "id": "chest",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Chest"
+      }
+    },
+    {
+      "id": "back",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Back"
+      }
+    },
+    {
+      "id": "shoulders",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Shoulders"
+      }
+    },
+    {
+      "id": "biceps",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Biceps"
+      }
+    },
+    {
+      "id": "triceps",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Triceps"
+      }
+    },
+    {
+      "id": "forearms",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Forearms"
+      }
+    },
+    {
+      "id": "abs",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Abs"
+      }
+    },
+    {
+      "id": "obliques",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Obliques"
+      }
+    },
+    {
+      "id": "quads",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Quads"
+      }
+    },
+    {
+      "id": "hamstrings",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Hamstrings"
+      }
+    },
+    {
+      "id": "glutes",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Glutes"
+      }
+    },
+    {
+      "id": "calves",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Calves"
+      }
+    },
+    {
+      "id": "traps",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Traps"
+      }
+    },
+    {
+      "id": "lats",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Lats"
+      }
+    },
+    {
+      "id": "delts",
+      "type": "muscle_group",
+      "properties": {
+        "name": "Delts"
+      }
+    },
+    {
+      "id": "push_up",
+      "type": "exercise",
+      "properties": {
+        "name": "Push-up"
+      }
+    },
+    {
+      "id": "bench_press",
+      "type": "exercise",
+      "properties": {
+        "name": "Bench Press"
+      }
+    },
+    {
+      "id": "dumbbell_fly",
+      "type": "exercise",
+      "properties": {
+        "name": "Dumbbell Fly"
+      }
+    },
+    {
+      "id": "pull_up",
+      "type": "exercise",
+      "properties": {
+        "name": "Pull-up"
+      }
+    },
+    {
+      "id": "barbell_row",
+      "type": "exercise",
+      "properties": {
+        "name": "Barbell Row"
+      }
+    },
+    {
+      "id": "deadlift",
+      "type": "exercise",
+      "properties": {
+        "name": "Deadlift"
+      }
+    },
+    {
+      "id": "overhead_press",
+      "type": "exercise",
+      "properties": {
+        "name": "Overhead Press"
+      }
+    },
+    {
+      "id": "lateral_raise",
+      "type": "exercise",
+      "properties": {
+        "name": "Lateral Raise"
+      }
+    },
+    {
+      "id": "bicep_curl",
+      "type": "exercise",
+      "properties": {
+        "name": "Bicep Curl"
+      }
+    },
+    {
+      "id": "tricep_dip",
+      "type": "exercise",
+      "properties": {
+        "name": "Tricep Dip"
+      }
+    },
+    {
+      "id": "squat",
+      "type": "exercise",
+      "properties": {
+        "name": "Squat"
+      }
+    },
+    {
+      "id": "leg_press",
+      "type": "exercise",
+      "properties": {
+        "name": "Leg Press"
+      }
+    },
+    {
+      "id": "leg_curl",
+      "type": "exercise",
+      "properties": {
+        "name": "Leg Curl"
+      }
+    },
+    {
+      "id": "calf_raise",
+      "type": "exercise",
+      "properties": {
+        "name": "Calf Raise"
+      }
+    },
+    {
+      "id": "plank",
+      "type": "exercise",
+      "properties": {
+        "name": "Plank"
+      }
+    },
+    {
+      "id": "crunch",
+      "type": "exercise",
+      "properties": {
+        "name": "Crunch"
+      }
+    },
+    {
+      "id": "diamond_push_up",
+      "type": "exercise",
+      "properties": {
+        "name": "Diamond Push-up"
+      }
+    },
+    {
+      "id": "archer_push_up",
+      "type": "exercise",
+      "properties": {
+        "name": "Archer Push-up"
+      }
+    },
+    {
+      "id": "weighted_pull_up",
+      "type": "exercise",
+      "properties": {
+        "name": "Weighted Pull-up"
+      }
+    },
+    {
+      "id": "pistol_squat",
+      "type": "exercise",
+      "properties": {
+        "name": "Pistol Squat"
+      }
+    },
+    {
+      "id": "side_plank",
+      "type": "exercise",
+      "properties": {
+        "name": "Side Plank"
+      }
+    },
+    {
+      "id": "user_123",
+      "type": "user",
+      "properties": {
+        "name": "John Doe"
+      }
+    },
+    {
+      "id": "session_20260129_123951",
+      "type": "workout_session",
+      "properties": {
+        "date": "2026-01-29T12:39:51.309501",
+        "duration_minutes": 45,
+        "location": "gym"
+      }
+    },
+    {
+      "id": "bulgarian_split_squat",
+      "type": "exercise",
+      "properties": {
+        "name": "Bulgarian Split Squat",
+        "difficulty": 4,
+        "equipment": "dumbbell"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from_id": "push_up",
+      "to_id": "chest",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "push_up",
+      "to_id": "triceps",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "push_up",
+      "to_id": "shoulders",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "push_up",
+      "to_id": "diamond_push_up",
+      "relationship": "progresses_to",
+      "properties": {
+        "difficulty_increase": 1
+      }
+    },
+    {
+      "from_id": "bench_press",
+      "to_id": "chest",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "bench_press",
+      "to_id": "triceps",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "bench_press",
+      "to_id": "shoulders",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "bench_press",
+      "to_id": "push_up",
+      "relationship": "alternative_to",
+      "properties": {
+        "reason": "bodyweight alternative"
+      }
+    },
+    {
+      "from_id": "dumbbell_fly",
+      "to_id": "chest",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "pull_up",
+      "to_id": "lats",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "pull_up",
+      "to_id": "back",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "pull_up",
+      "to_id": "biceps",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "pull_up",
+      "to_id": "weighted_pull_up",
+      "relationship": "progresses_to",
+      "properties": {
+        "difficulty_increase": 1
+      }
+    },
+    {
+      "from_id": "barbell_row",
+      "to_id": "back",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "barbell_row",
+      "to_id": "lats",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "barbell_row",
+      "to_id": "biceps",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "barbell_row",
+      "to_id": "pull_up",
+      "relationship": "alternative_to",
+      "properties": {
+        "reason": "vertical pull alternative"
+      }
+    },
+    {
+      "from_id": "deadlift",
+      "to_id": "back",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "deadlift",
+      "to_id": "hamstrings",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "deadlift",
+      "to_id": "glutes",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "deadlift",
+      "to_id": "traps",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "overhead_press",
+      "to_id": "delts",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "overhead_press",
+      "to_id": "shoulders",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "overhead_press",
+      "to_id": "triceps",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "lateral_raise",
+      "to_id": "delts",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "lateral_raise",
+      "to_id": "shoulders",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "bicep_curl",
+      "to_id": "biceps",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "tricep_dip",
+      "to_id": "triceps",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "squat",
+      "to_id": "quads",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "squat",
+      "to_id": "glutes",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "squat",
+      "to_id": "hamstrings",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "squat",
+      "to_id": "pistol_squat",
+      "relationship": "progresses_to",
+      "properties": {
+        "difficulty_increase": 1
+      }
+    },
+    {
+      "from_id": "squat",
+      "to_id": "bulgarian_split_squat",
+      "relationship": "progresses_to",
+      "properties": {
+        "difficulty_increase": 2,
+        "unilateral": true
+      }
+    },
+    {
+      "from_id": "leg_press",
+      "to_id": "quads",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "leg_press",
+      "to_id": "glutes",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "leg_press",
+      "to_id": "squat",
+      "relationship": "alternative_to",
+      "properties": {
+        "reason": "free weight alternative"
+      }
+    },
+    {
+      "from_id": "leg_curl",
+      "to_id": "hamstrings",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "calf_raise",
+      "to_id": "calves",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "plank",
+      "to_id": "abs",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "plank",
+      "to_id": "obliques",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    },
+    {
+      "from_id": "plank",
+      "to_id": "side_plank",
+      "relationship": "progresses_to",
+      "properties": {
+        "difficulty_increase": 1
+      }
+    },
+    {
+      "from_id": "crunch",
+      "to_id": "abs",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "diamond_push_up",
+      "to_id": "archer_push_up",
+      "relationship": "progresses_to",
+      "properties": {
+        "difficulty_increase": 1
+      }
+    },
+    {
+      "from_id": "user_123",
+      "to_id": "session_20260129_123951",
+      "relationship": "completed",
+      "properties": {}
+    },
+    {
+      "from_id": "session_20260129_123951",
+      "to_id": "squat",
+      "relationship": "performed",
+      "properties": {
+        "weight": 100,
+        "sets": 3,
+        "reps": 8,
+        "timestamp": "2026-01-29T12:39:51.310991"
+      }
+    },
+    {
+      "from_id": "session_20260129_123951",
+      "to_id": "bench_press",
+      "relationship": "performed",
+      "properties": {
+        "weight": 80,
+        "sets": 3,
+        "reps": 10,
+        "timestamp": "2026-01-29T12:39:51.311719"
+      }
+    },
+    {
+      "from_id": "session_20260129_123951",
+      "to_id": "pull_up",
+      "relationship": "performed",
+      "properties": {
+        "weight": 0,
+        "sets": 3,
+        "reps": 12,
+        "timestamp": "2026-01-29T12:39:51.312340"
+      }
+    },
+    {
+      "from_id": "bulgarian_split_squat",
+      "to_id": "quads",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "bulgarian_split_squat",
+      "to_id": "glutes",
+      "relationship": "targets",
+      "properties": {
+        "primary": true
+      }
+    },
+    {
+      "from_id": "bulgarian_split_squat",
+      "to_id": "hamstrings",
+      "relationship": "targets",
+      "properties": {
+        "primary": false
+      }
+    }
+  ]
+}

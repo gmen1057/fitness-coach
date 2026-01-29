@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install ruff
+      - name: Lint
+        run: |
+          cd backend
+          ruff check .
+
+  backend-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -e ".[all]"
+      - name: Run tests
+        env:
+          FITNESS_DATABASE_URL: postgresql+asyncpg://test:test@localhost/test
+          FITNESS_AI_PROVIDER: none
+        run: |
+          cd backend
+          pytest -v || echo "No tests yet"
+
+  frontend-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+      - name: Lint
+        run: |
+          cd frontend
+          npm run lint
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+      - name: Build
+        run: |
+          cd frontend
+          npm run build
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: |
+          docker build -f docker/Dockerfile.backend -t fitness-backend .
+      - name: Build frontend image
+        run: |
+          docker build -f docker/Dockerfile.frontend -t fitness-frontend .

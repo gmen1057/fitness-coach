@@ -1,0 +1,14 @@
+# =============================================================================
+# Cloud Dependencies - Anthropic + OpenAI + pgvector
+# =============================================================================
+# Recommended for production with cloud AI providers
+
+# Base dependencies
+-r base.txt
+
+# Cloud AI providers
+anthropic>=0.40.0
+openai>=1.50.0
+
+# Vector search for RAG
+pgvector>=0.3.0
