@@ -4,25 +4,18 @@ Fitness Plans API.
 Endpoints for managing workout plans with weeks, days, and exercises.
 """
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db import get_db
 from app.api.deps import get_user_id
-from app.models.fitness import (
-    WorkoutPlan,
-    PlanWeek,
-    PlanDay,
-    DayWarmup,
-    DayExercise,
-    WorkoutStatus
-)
+from app.db import get_db
+from app.models.fitness import DayExercise, DayWarmup, PlanDay, PlanWeek, WorkoutPlan, WorkoutStatus
 
 router = APIRouter()
 
@@ -36,10 +29,10 @@ class ExerciseResponse(BaseModel):
     id: UUID
     name: str
     sets: int
-    reps: Optional[str] = None  # Can be "8-10" or "12"
-    weight: Optional[str] = None  # Can be "100kg" or "bodyweight"
-    rest_seconds: Optional[int] = None
-    comments: Optional[str] = None
+    reps: str | None = None  # Can be "8-10" or "12"
+    weight: str | None = None  # Can be "100kg" or "bodyweight"
+    rest_seconds: int | None = None
+    comments: str | None = None
     order_index: int
     status: str = "pending"
 
@@ -51,8 +44,8 @@ class WarmupResponse(BaseModel):
     """Warmup instructions for a day."""
     id: UUID
     instructions: str
-    comments: Optional[str] = None
-    duration_minutes: Optional[int] = None
+    comments: str | None = None
+    duration_minutes: int | None = None
 
     class Config:
         from_attributes = True
@@ -62,10 +55,10 @@ class WorkoutDayResponse(BaseModel):
     """Single workout day."""
     id: UUID
     day_number: int
-    name: Optional[str] = None
-    notes: Optional[str] = None
-    warmups: List[WarmupResponse] = []
-    exercises: List[ExerciseResponse] = []
+    name: str | None = None
+    notes: str | None = None
+    warmups: list[WarmupResponse] = []
+    exercises: list[ExerciseResponse] = []
     status: str = "pending"
 
     class Config:
@@ -76,9 +69,9 @@ class WorkoutWeekResponse(BaseModel):
     """Single workout week."""
     id: UUID
     week_number: int
-    notes: Optional[str] = None
+    notes: str | None = None
     status: str = "pending"
-    days: List[WorkoutDayResponse] = []
+    days: list[WorkoutDayResponse] = []
 
     class Config:
         from_attributes = True
@@ -88,8 +81,8 @@ class PlanSummaryResponse(BaseModel):
     """Plan summary for list view."""
     id: UUID
     name: str
-    description: Optional[str] = None
-    goal: Optional[str] = None
+    description: str | None = None
+    goal: str | None = None
     total_weeks: int
     is_active: bool = False
     created_at: datetime
@@ -105,13 +98,13 @@ class PlanDetailResponse(BaseModel):
     """Full plan with weeks and days."""
     id: UUID
     name: str
-    description: Optional[str] = None
-    goal: Optional[str] = None
+    description: str | None = None
+    goal: str | None = None
     total_weeks: int
     is_active: bool = False
     created_at: datetime
-    updated_at: Optional[datetime] = None
-    weeks: List[WorkoutWeekResponse] = []
+    updated_at: datetime | None = None
+    weeks: list[WorkoutWeekResponse] = []
 
     class Config:
         from_attributes = True
@@ -125,19 +118,19 @@ class CurrentWorkoutResponse(BaseModel):
     day: WorkoutDayResponse
     total_days: int
     completed_days: int
-    message: Optional[str] = None
+    message: str | None = None
 
 
 class PlansListResponse(BaseModel):
     """Response for plans list."""
-    plans: List[PlanSummaryResponse]
+    plans: list[PlanSummaryResponse]
     total: int
 
 
 class CreatePlanRequest(BaseModel):
     """Request to create a workout plan via AI."""
     description: str = Field(..., min_length=10, max_length=1000)
-    goal: Optional[str] = None
+    goal: str | None = None
     weeks: int = Field(4, ge=1, le=52, description="Number of weeks")
 
 
@@ -149,7 +142,7 @@ class CreatePlanRequest(BaseModel):
 async def list_plans(
     db: AsyncSession = Depends(get_db),
     user_id: UUID = Depends(get_user_id),
-    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    is_active: bool | None = Query(None, description="Filter by active status"),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
 ):

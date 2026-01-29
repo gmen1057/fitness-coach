@@ -1,11 +1,12 @@
 """
 Tests for graph provider implementations.
 """
-import pytest
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
-from app.providers.graph import NetworkXGraphProvider, GraphNode
+import pytest
+
+from app.providers.graph import GraphNode, NetworkXGraphProvider
 
 
 @pytest.fixture

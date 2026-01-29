@@ -4,7 +4,7 @@ Database models for Fitness Coach.
 This package contains all SQLAlchemy models for the application.
 """
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
 # Base for all models

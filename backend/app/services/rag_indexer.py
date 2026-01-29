@@ -12,11 +12,11 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.fitness import WorkoutPlan, PlanWeek, PlanDay, DayExercise
+from app.models.fitness import DayExercise, PlanDay, PlanWeek, WorkoutPlan
 
 logger = logging.getLogger(__name__)
 
@@ -119,8 +119,8 @@ async def index_completed_workout(
     db: AsyncSession,
     day_id: UUID,
     user_id: UUID,
-    duration_minutes: Optional[int] = None,
-    notes: Optional[str] = None
+    duration_minutes: int | None = None,
+    notes: str | None = None
 ) -> bool:
     """
     Index a completed workout for RAG search.

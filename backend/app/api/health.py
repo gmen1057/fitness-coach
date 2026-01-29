@@ -1,10 +1,11 @@
 """
 Health check endpoints for monitoring service status.
 """
+import logging
+from typing import Optional
+
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import Optional
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +15,11 @@ router = APIRouter(tags=["health"])
 class RAGHealthResponse(BaseModel):
     """RAG health check response"""
     rag_enabled: bool
-    rag_provider: Optional[str] = None
-    embedding_provider: Optional[str] = None
-    embedding_dimensions: Optional[int] = None
+    rag_provider: str | None = None
+    embedding_provider: str | None = None
+    embedding_dimensions: int | None = None
     status: str  # "healthy", "degraded", "unavailable"
-    message: Optional[str] = None
+    message: str | None = None
 
 
 @router.get("/health/rag", response_model=RAGHealthResponse)

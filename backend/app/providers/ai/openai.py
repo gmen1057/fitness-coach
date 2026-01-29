@@ -7,11 +7,11 @@ Supports:
 - Streaming responses
 """
 import json
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 from openai import AsyncOpenAI
 
-from ..protocols import AIProvider, Message, CompletionChunk, ToolCall
+from ..protocols import AIProvider, CompletionChunk, Message, ToolCall
 
 
 class OpenAIProvider(AIProvider):

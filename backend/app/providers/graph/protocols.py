@@ -7,8 +7,8 @@ Protocol for knowledge graph implementations that can track:
 - User's workout history and patterns
 - Exercise performance trends
 """
-from typing import Protocol, runtime_checkable
 from dataclasses import dataclass
+from typing import Protocol, runtime_checkable
 
 
 @dataclass

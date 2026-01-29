@@ -7,12 +7,12 @@ Supports:
 - No function calling (basic chat only)
 """
 import json
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 import httpx
 
-from ..protocols import AIProvider, Message, CompletionChunk
+from ..protocols import AIProvider, CompletionChunk, Message
 
 
 class OllamaProvider(AIProvider):

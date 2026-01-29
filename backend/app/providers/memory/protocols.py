@@ -6,9 +6,9 @@ Defines interfaces for:
 - Enhanced memory: LangChain-based memory strategies (buffer, summary, etc.)
 - Knowledge graph memory: Entity relationships and patterns
 """
-from typing import Protocol, runtime_checkable
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Protocol, runtime_checkable
 
 
 @dataclass

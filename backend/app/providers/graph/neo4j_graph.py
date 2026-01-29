@@ -7,13 +7,13 @@ Install with: pip install "fitness-coach[neo4j]"
 from typing import Any
 
 try:
-    from neo4j import AsyncGraphDatabase, AsyncDriver
+    from neo4j import AsyncDriver, AsyncGraphDatabase
     NEO4J_AVAILABLE = True
 except ImportError:
     NEO4J_AVAILABLE = False
     AsyncDriver = Any  # Type stub
 
-from .protocols import GraphNode, GraphEdge, GraphQueryResult
+from .protocols import GraphEdge, GraphNode, GraphQueryResult
 
 
 class Neo4jGraphProvider:
@@ -259,7 +259,7 @@ class Neo4jGraphProvider:
 
         # Add relationship filter if specified
         if relationship:
-            cypher = cypher.replace("[r]", f"[r {{type: $relationship}}]")
+            cypher = cypher.replace("[r]", "[r {type: $relationship}]")
 
         cypher += " RETURN DISTINCT m"
 

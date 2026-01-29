@@ -18,10 +18,10 @@ from uuid import UUID
 try:
     from langchain.memory import (
         ConversationBufferMemory,
-        ConversationSummaryMemory,
         ConversationBufferWindowMemory,
+        ConversationSummaryMemory,
     )
-    from langchain.schema import BaseMessage, HumanMessage, AIMessage, SystemMessage
+    from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     LANGCHAIN_AVAILABLE = False
@@ -36,7 +36,7 @@ except ImportError:
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .protocols import MemoryProvider, MemoryMessage, MemoryContext
+from .protocols import MemoryContext, MemoryMessage, MemoryProvider
 from .simple import SimpleMemory
 
 if TYPE_CHECKING:

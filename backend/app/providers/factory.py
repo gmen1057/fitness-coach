@@ -7,8 +7,8 @@ Lazy imports minimize cold start time.
 import threading
 from typing import TYPE_CHECKING
 
-from .protocols import AIProvider, EmbeddingProvider, RAGProvider
 from .graph.protocols import GraphProvider
+from .protocols import AIProvider, EmbeddingProvider, RAGProvider
 
 if TYPE_CHECKING:
     from ..config import Settings

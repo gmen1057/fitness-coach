@@ -5,8 +5,8 @@ Available providers:
 - OpenAIEmbedding: OpenAI text-embedding-3 models
 - OllamaEmbedding: Local Ollama embedding models
 """
-from .openai import OpenAIEmbedding
 from .ollama import OllamaEmbedding
+from .openai import OpenAIEmbedding
 
 __all__ = [
     "OpenAIEmbedding",

@@ -36,7 +36,7 @@ export default function HomePage() {
             <div className="card p-6 bg-gradient-to-br from-fitness to-fitness-light text-white hover:shadow-xl transition-all cursor-pointer">
               <div className="flex items-center gap-3 mb-3">
                 <Dumbbell className="w-6 h-6" />
-                <h2 className="text-xl font-bold">Today's Workout</h2>
+                <h2 className="text-xl font-bold">Today&apos;s Workout</h2>
               </div>
               <p className="text-emerald-50 mb-2">{currentDay.name}</p>
               <p className="text-sm text-emerald-100">

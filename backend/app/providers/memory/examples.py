@@ -5,10 +5,11 @@ These examples demonstrate common patterns for integrating memory
 into your fitness coach application.
 """
 from uuid import UUID
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.providers import get_ai_provider
-from app.providers.memory import get_memory_provider, MemoryContext
+from app.providers.memory import MemoryContext, get_memory_provider
 from app.providers.protocols import Message
 
 

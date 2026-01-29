@@ -4,23 +4,17 @@ Fitness Workouts API.
 Endpoints for tracking workout completion and statistics.
 """
 from datetime import date, datetime, timedelta
-from typing import Optional, List
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db import get_db
 from app.api.deps import get_user_id
-from app.models.fitness import (
-    WorkoutPlan,
-    PlanWeek,
-    PlanDay,
-    WorkoutStatus,
-    WorkoutLog
-)
+from app.db import get_db
+from app.models.fitness import PlanDay, PlanWeek, WorkoutLog, WorkoutPlan, WorkoutStatus
 
 router = APIRouter()
 
@@ -32,9 +26,9 @@ router = APIRouter()
 class CompleteDayRequest(BaseModel):
     """Request to complete a workout day."""
     day_id: UUID
-    notes: Optional[str] = Field(None, max_length=1000, description="Optional workout notes")
-    overall_feeling: Optional[str] = Field(None, description="How you felt: easy, normal, hard, exhausted")
-    duration_minutes: Optional[int] = Field(None, ge=1, description="Actual workout duration")
+    notes: str | None = Field(None, max_length=1000, description="Optional workout notes")
+    overall_feeling: str | None = Field(None, description="How you felt: easy, normal, hard, exhausted")
+    duration_minutes: int | None = Field(None, ge=1, description="Actual workout duration")
 
 
 class SkipDayRequest(BaseModel):
@@ -47,7 +41,7 @@ class DayCompletionResponse(BaseModel):
     """Response after completing/skipping a day."""
     day_id: UUID
     status: str
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None
     message: str
 
 
@@ -76,7 +70,7 @@ class WeeklyProgressResponse(BaseModel):
 
 class ProgressHistoryResponse(BaseModel):
     """Progress history with weekly breakdown."""
-    weeks: List[WeeklyProgressResponse]
+    weeks: list[WeeklyProgressResponse]
     stats: WorkoutStatsResponse
 
 
@@ -222,7 +216,7 @@ async def skip_workout_day(
 async def get_workout_stats(
     db: AsyncSession = Depends(get_db),
     user_id: UUID = Depends(get_user_id),
-    plan_id: Optional[UUID] = Query(None, description="Filter by specific plan"),
+    plan_id: UUID | None = Query(None, description="Filter by specific plan"),
 ):
     """
     Get workout statistics.

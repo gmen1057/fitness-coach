@@ -7,20 +7,20 @@ Supports streaming responses via Server-Sent Events (SSE).
 import json
 import logging
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from sqlalchemy import select, desc, delete, func
+from sqlalchemy import delete, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sse_starlette.sse import EventSourceResponse
 
-from app.db import get_db
 from app.api.deps import get_user_id
 from app.config import get_settings
+from app.db import get_db
 from app.models.fitness import ChatMessage as ChatMessageModel
 
 settings = get_settings()
@@ -39,7 +39,7 @@ class ChatMessageSchema(BaseModel):
     role: str  # "user" or "assistant"
     content: str
     created_at: datetime
-    tool_calls: Optional[List[Dict[str, Any]]] = None
+    tool_calls: list[dict[str, Any]] | None = None
 
     class Config:
         from_attributes = True
@@ -48,12 +48,12 @@ class ChatMessageSchema(BaseModel):
 class ChatRequest(BaseModel):
     """Request to send a chat message."""
     message: str = Field(..., min_length=1, max_length=5000)
-    conversation_id: Optional[UUID] = Field(None, description="Conversation thread ID")
+    conversation_id: UUID | None = Field(None, description="Conversation thread ID")
 
 
 class ChatHistoryResponse(BaseModel):
     """Chat history response."""
-    messages: List[ChatMessageSchema]
+    messages: list[ChatMessageSchema]
     total: int
     has_more: bool
 
@@ -66,7 +66,7 @@ async def get_conversation_history(
     db: AsyncSession,
     user_id: UUID,
     limit: int = 10
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Get recent conversation history for context.
 
@@ -243,7 +243,7 @@ async def get_chat_history(
     user_id: UUID = Depends(get_user_id),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    before: Optional[datetime] = Query(None, description="Get messages before this timestamp"),
+    before: datetime | None = Query(None, description="Get messages before this timestamp"),
 ):
     """
     Get chat history for the user.

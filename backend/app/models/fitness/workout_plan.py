@@ -9,20 +9,20 @@ Schema:
 - DayExercise: Individual exercises for a day
 """
 
-import uuid
 import enum
+import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    Boolean,
     Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
     String,
     Text,
-    Integer,
-    Boolean,
-    DateTime,
-    ForeignKey,
-    Enum,
-    Index,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship

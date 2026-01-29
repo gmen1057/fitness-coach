@@ -17,15 +17,15 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.fitness import (
-    WorkoutPlan,
-    PlanWeek,
-    PlanDay,
     DayExercise,
+    PlanDay,
+    PlanWeek,
+    WorkoutPlan,
     WorkoutStatus,
 )
 
@@ -67,7 +67,7 @@ class PlanNavigator:
             logger.error(f"Failed to generate navigation: {e}")
             return ""
 
-    async def _build_navigation_data(self, user_id: UUID) -> Dict[str, Any]:
+    async def _build_navigation_data(self, user_id: UUID) -> dict[str, Any]:
         """Build raw navigation data from database."""
         now = datetime.now()
         today = now.date()
@@ -123,7 +123,7 @@ class PlanNavigator:
 
         return data
 
-    def _summarize_plan(self, plan: WorkoutPlan) -> Dict[str, Any]:
+    def _summarize_plan(self, plan: WorkoutPlan) -> dict[str, Any]:
         """Create compact summary of a plan."""
         total_days = 0
         completed_days = 0
@@ -157,7 +157,7 @@ class PlanNavigator:
             "total_days": total_days,
         }
 
-    def _get_next_workout(self, plan: WorkoutPlan) -> Optional[Dict[str, Any]]:
+    def _get_next_workout(self, plan: WorkoutPlan) -> dict[str, Any] | None:
         """Get next pending workout details."""
         for week in sorted(plan.weeks, key=lambda w: w.week_number):
             for day in sorted(week.days, key=lambda d: d.day_number):
@@ -176,7 +176,7 @@ class PlanNavigator:
                     }
         return None
 
-    def _get_today_workout(self, plan: WorkoutPlan, today) -> Optional[Dict[str, Any]]:
+    def _get_today_workout(self, plan: WorkoutPlan, today) -> dict[str, Any] | None:
         """Check if a workout was completed today."""
         for week in plan.weeks:
             for day in week.days:
@@ -190,7 +190,7 @@ class PlanNavigator:
                         }
         return None
 
-    def _get_recent_workouts(self, plan: WorkoutPlan, limit: int = 5, today=None) -> List[Dict[str, Any]]:
+    def _get_recent_workouts(self, plan: WorkoutPlan, limit: int = 5, today=None) -> list[dict[str, Any]]:
         """Get recent completed/skipped workouts."""
         recent = []
 
@@ -215,7 +215,7 @@ class PlanNavigator:
 
         return recent
 
-    def _calculate_stats(self, plan: WorkoutPlan) -> Dict[str, Any]:
+    def _calculate_stats(self, plan: WorkoutPlan) -> dict[str, Any]:
         """Calculate workout statistics."""
         completed = 0
         skipped = 0
@@ -264,7 +264,7 @@ class PlanNavigator:
             "completion_rate": f"{round(completed / (completed + skipped) * 100) if (completed + skipped) > 0 else 0}%",
         }
 
-    def _format_navigation(self, data: Dict[str, Any]) -> str:
+    def _format_navigation(self, data: dict[str, Any]) -> str:
         """Format navigation data as readable context for agent."""
         lines = []
 

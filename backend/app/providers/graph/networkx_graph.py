@@ -4,12 +4,14 @@ Lightweight in-memory knowledge graph using NetworkX.
 Persists to JSON file for simplicity. Good for single-user deployments.
 No external database required.
 """
-import json
 import asyncio
+import json
 from pathlib import Path
 from typing import Any
+
 import networkx as nx
-from .protocols import GraphNode, GraphEdge, GraphQueryResult
+
+from .protocols import GraphEdge, GraphNode, GraphQueryResult
 
 
 class NetworkXGraphProvider:
@@ -55,7 +57,7 @@ class NetworkXGraphProvider:
 
     def _sync_load_from_file(self) -> None:
         """Synchronous load from file."""
-        with open(self.storage_path, "r", encoding="utf-8") as f:
+        with open(self.storage_path, encoding="utf-8") as f:
             data = json.load(f)
 
         # Reconstruct graph

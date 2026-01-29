@@ -14,15 +14,16 @@ Features:
 import asyncio
 import json
 import logging
-from typing import AsyncGenerator, List, Dict, Any
+from collections.abc import AsyncGenerator
+from typing import Any, Dict, List
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.providers import get_ai_provider, Message, CompletionChunk
-from app.services.tools import TOOLS, ToolExecutor
+from app.providers import CompletionChunk, Message, get_ai_provider
 from app.services.plan_navigator import get_plan_navigation
 from app.services.streaming import SSEFormatter
+from app.services.tools import TOOLS, ToolExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +75,7 @@ class FitnessAgent:
     async def chat_stream(
         self,
         message: str,
-        conversation_history: List[Dict[str, str]] = None
+        conversation_history: list[dict[str, str]] = None
     ) -> AsyncGenerator[str, None]:
         """
         Stream chat response with agentic tool execution.

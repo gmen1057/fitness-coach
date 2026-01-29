@@ -1,8 +1,8 @@
 """SSE streaming utilities for real-time AI responses"""
 import json
-from typing import Any, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Optional
 
 
 class SSEEventType(str, Enum):
@@ -20,7 +20,7 @@ class SSEEvent:
     """Represents an SSE event"""
     event_type: SSEEventType
     data: Any
-    id: Optional[str] = None
+    id: str | None = None
 
     def format(self) -> str:
         """Format as SSE string"""
@@ -43,7 +43,7 @@ class SSEFormatter:
     """Utility class for formatting SSE events"""
 
     @staticmethod
-    def text(content: str, event_id: Optional[str] = None) -> str:
+    def text(content: str, event_id: str | None = None) -> str:
         """Format a text chunk event"""
         return SSEEvent(
             event_type=SSEEventType.TEXT,
@@ -87,7 +87,7 @@ class SSEFormatter:
         ).format()
 
     @staticmethod
-    def done(usage: Optional[dict[str, int]] = None) -> str:
+    def done(usage: dict[str, int] | None = None) -> str:
         """Format a done event"""
         data = {"status": "complete"}
         if usage:
@@ -98,7 +98,7 @@ class SSEFormatter:
         ).format()
 
     @staticmethod
-    def error(message: str, code: Optional[str] = None) -> str:
+    def error(message: str, code: str | None = None) -> str:
         """Format an error event"""
         data = {"message": message}
         if code:

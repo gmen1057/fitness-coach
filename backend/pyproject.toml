@@ -127,8 +127,20 @@ select = [
 ]
 ignore = [
     "E501",  # line too long (handled by formatter)
+    "E712",  # comparison to True (needed for SQLAlchemy)
+    "E402",  # module level import not at top (FastAPI app setup pattern)
+    "E741",  # ambiguous variable name (l, O, I)
+    "B007",  # loop control variable not used
     "B008",  # do not perform function calls in argument defaults
+    "B904",  # raise from in exception handling (verbose)
+    "C405",  # unnecessary list literal
+    "F401",  # unused imports (needed for alembic, re-exports)
+    "UP035", # deprecated typing imports (List, Dict vs list, dict)
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"alembic/*" = ["F401", "I001", "UP"]  # Alembic auto-generated files
+"__init__.py" = ["F401"]  # Re-exports in __init__.py
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

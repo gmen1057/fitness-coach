@@ -6,19 +6,19 @@ Schema:
 - ExerciseResult: Actual performance vs planned for each exercise
 """
 
-import uuid
 import enum
+import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    Column,
-    String,
-    Text,
-    Integer,
     Boolean,
+    Column,
     DateTime,
     ForeignKey,
     Index,
+    Integer,
+    String,
+    Text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship

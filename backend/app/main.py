@@ -81,10 +81,10 @@ app.add_middleware(
 )
 
 # Import and register routers
+from app.api import health as health_router
 from app.api.fitness import chat as fitness_chat
 from app.api.fitness import plans as fitness_plans
 from app.api.fitness import workouts as fitness_workouts
-from app.api import health as health_router
 
 app.include_router(fitness_chat.router, prefix="/api/fitness", tags=["fitness-chat"])
 app.include_router(fitness_plans.router, prefix="/api/fitness", tags=["fitness-plans"])

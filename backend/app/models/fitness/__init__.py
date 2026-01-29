@@ -4,20 +4,20 @@ Fitness module models.
 Exports all fitness-related SQLAlchemy models for workout tracking.
 """
 
-from app.models.fitness.workout_plan import (
-    WorkoutStatus,
-    WorkoutPlan,
-    PlanWeek,
-    PlanDay,
-    DayWarmup,
-    DayExercise,
-)
+from app.models.fitness.chat_message import ChatMessage, UserSession
 from app.models.fitness.workout_log import (
+    ExerciseResult,
     FeelingLevel,
     WorkoutLog,
-    ExerciseResult,
 )
-from app.models.fitness.chat_message import ChatMessage, UserSession
+from app.models.fitness.workout_plan import (
+    DayExercise,
+    DayWarmup,
+    PlanDay,
+    PlanWeek,
+    WorkoutPlan,
+    WorkoutStatus,
+)
 
 __all__ = [
     # Enums

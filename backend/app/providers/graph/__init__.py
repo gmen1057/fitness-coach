@@ -21,13 +21,13 @@ Usage:
     # Find related exercises
     alternatives = await graph.get_related("squat", "alternative_to")
 """
-from .protocols import (
-    GraphNode,
-    GraphEdge,
-    GraphQueryResult,
-    GraphProvider,
-)
 from .networkx_graph import NetworkXGraphProvider
+from .protocols import (
+    GraphEdge,
+    GraphNode,
+    GraphProvider,
+    GraphQueryResult,
+)
 
 # Try to import Neo4j provider (optional)
 try:

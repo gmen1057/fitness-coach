@@ -13,7 +13,7 @@ from fastapi import Header, HTTPException
 DEFAULT_USER_ID = "00000000-0000-0000-0000-000000000001"
 
 
-def get_user_id(x_user_id: Optional[str] = Header(None)) -> UUID:
+def get_user_id(x_user_id: str | None = Header(None)) -> UUID:
     """
     Get user ID from X-User-ID header or use default.
 

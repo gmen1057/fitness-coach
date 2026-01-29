@@ -9,7 +9,7 @@ Schema:
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Column, String, Text, DateTime, JSON, UniqueConstraint
+from sqlalchemy import JSON, Column, DateTime, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.models import Base

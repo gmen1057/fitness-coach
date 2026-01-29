@@ -8,10 +8,10 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import select, desc, delete, func
+from sqlalchemy import delete, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .protocols import MemoryProvider, MemoryMessage, MemoryContext
+from .protocols import MemoryContext, MemoryMessage, MemoryProvider
 
 if TYPE_CHECKING:
     from app.models.fitness.chat_message import ChatMessage as ChatMessageModel

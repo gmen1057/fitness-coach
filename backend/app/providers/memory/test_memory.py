@@ -3,15 +3,16 @@ Quick smoke tests for memory providers.
 
 Run with: pytest app/providers/memory/test_memory.py
 """
-import pytest
 from datetime import datetime
 from uuid import uuid4
 
+import pytest
+
 from app.providers.memory import (
-    get_memory_provider,
     MemoryProvider,
-    SimpleMemory,
     MemoryProviderError,
+    SimpleMemory,
+    get_memory_provider,
 )
 
 

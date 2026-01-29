@@ -11,17 +11,17 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List
 from uuid import UUID
 
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.fitness import (
-    WorkoutPlan,
-    PlanWeek,
-    PlanDay,
     DayExercise,
-    WorkoutLog,
     ExerciseResult,
+    PlanDay,
+    PlanWeek,
+    WorkoutLog,
+    WorkoutPlan,
     WorkoutStatus,
 )
 
@@ -664,7 +664,7 @@ class ToolExecutor:
         self.db = db
         self.user_id = user_id
 
-    async def execute(self, tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
         """
         Execute a tool by name.
 
@@ -718,7 +718,7 @@ class ToolExecutor:
             logger.error(f"Tool execution failed for {tool_name}: {e}")
             return {"error": str(e)}
 
-    async def _get_workout_plans(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _get_workout_plans(self, args: dict[str, Any]) -> dict[str, Any]:
         """Get all workout plans for the user"""
         active_only = args.get("active_only", True)
 
@@ -768,7 +768,7 @@ class ToolExecutor:
 
         return {"plans": plans_data}
 
-    async def _get_current_workout(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _get_current_workout(self, args: dict[str, Any]) -> dict[str, Any]:
         """Get today's or next pending workout"""
         plan_query = (
             select(WorkoutPlan)
@@ -828,7 +828,7 @@ class ToolExecutor:
             "message": "All workouts in the current plan are completed! Great job!"
         }
 
-    async def _get_workout_stats(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _get_workout_stats(self, args: dict[str, Any]) -> dict[str, Any]:
         """Get workout statistics and progress"""
         days = args.get("days", 30)
         since_date = datetime.utcnow() - timedelta(days=days)
@@ -915,7 +915,7 @@ class ToolExecutor:
 
         return stats_data
 
-    async def _complete_workout_day(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _complete_workout_day(self, args: dict[str, Any]) -> dict[str, Any]:
         """Mark a workout day as completed"""
         day_id = args.get("day_id")
         duration_minutes = args.get("duration_minutes")
@@ -1009,7 +1009,7 @@ class ToolExecutor:
             "day_name": day.name
         }
 
-    async def _skip_workout_day(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _skip_workout_day(self, args: dict[str, Any]) -> dict[str, Any]:
         """Mark a workout day as skipped"""
         day_id = args.get("day_id")
         reason = args.get("reason")
@@ -1043,7 +1043,7 @@ class ToolExecutor:
             "day_name": day.name
         }
 
-    async def _add_exercise_note(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _add_exercise_note(self, args: dict[str, Any]) -> dict[str, Any]:
         """Add a note to an exercise"""
         exercise_id = args.get("exercise_id")
         note = args.get("note")
@@ -1077,7 +1077,7 @@ class ToolExecutor:
             "exercise_name": exercise.name
         }
 
-    async def _create_workout_plan(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _create_workout_plan(self, args: dict[str, Any]) -> dict[str, Any]:
         """Create a new workout plan"""
         name = args.get("name")
         goal = args.get("goal")
@@ -1119,7 +1119,7 @@ class ToolExecutor:
             "hint": "Use add_week_to_plan and add_day_to_week to build the plan structure"
         }
 
-    async def _create_full_plan(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _create_full_plan(self, args: dict[str, Any]) -> dict[str, Any]:
         """
         Create a complete workout plan with all weeks, days, and exercises.
 
@@ -1218,7 +1218,7 @@ class ToolExecutor:
             await self.db.rollback()
             return {"error": f"Failed to create plan: {str(e)}"}
 
-    async def _update_workout_plan(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _update_workout_plan(self, args: dict[str, Any]) -> dict[str, Any]:
         """Update an existing workout plan"""
         plan_id = args.get("plan_id")
         name = args.get("name")
@@ -1264,7 +1264,7 @@ class ToolExecutor:
             "plan_id": str(plan.id)
         }
 
-    async def _delete_workout_plan(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _delete_workout_plan(self, args: dict[str, Any]) -> dict[str, Any]:
         """Delete a workout plan and all its contents"""
         logger.info(f"delete_workout_plan args: {args}")
         plan_id = args.get("plan_id")
@@ -1300,7 +1300,7 @@ class ToolExecutor:
             "message": f"Deleted workout plan '{plan_name}' and all associated data"
         }
 
-    async def _get_plan_structure(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _get_plan_structure(self, args: dict[str, Any]) -> dict[str, Any]:
         """Get complete plan structure with weeks, days, and exercises"""
         plan_id = args.get("plan_id")
 
@@ -1379,7 +1379,7 @@ class ToolExecutor:
             }
         }
 
-    async def _get_week_structure(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _get_week_structure(self, args: dict[str, Any]) -> dict[str, Any]:
         """Get week structure with all days and exercises"""
         week_id = args.get("week_id")
 
@@ -1439,7 +1439,7 @@ class ToolExecutor:
             }
         }
 
-    async def _add_week_to_plan(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _add_week_to_plan(self, args: dict[str, Any]) -> dict[str, Any]:
         """Add a new week to a workout plan"""
         plan_id = args.get("plan_id")
         week_number = args.get("week_number")
@@ -1493,7 +1493,7 @@ class ToolExecutor:
             "week_number": week_number
         }
 
-    async def _add_day_to_week(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _add_day_to_week(self, args: dict[str, Any]) -> dict[str, Any]:
         """Add a training day to a week"""
         week_id = args.get("week_id")
         day_number = args.get("day_number")
@@ -1547,7 +1547,7 @@ class ToolExecutor:
             "name": name
         }
 
-    async def _add_exercise_to_day(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _add_exercise_to_day(self, args: dict[str, Any]) -> dict[str, Any]:
         """Add an exercise to a training day"""
         day_id = args.get("day_id")
         name = args.get("name")
@@ -1606,7 +1606,7 @@ class ToolExecutor:
             "message": f"Added '{name}' ({sets}x{reps}) to '{day.name}'"
         }
 
-    async def _create_full_week(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _create_full_week(self, args: dict[str, Any]) -> dict[str, Any]:
         """Create a complete week with all days and exercises in one transaction."""
         week_id = args.get("week_id")
         days_data = args.get("days", [])
@@ -1693,7 +1693,7 @@ class ToolExecutor:
             "message": f"Created {len(created_days)} days with {total_exercises} exercises for week {week.week_number}"
         }
 
-    async def _update_exercise(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _update_exercise(self, args: dict[str, Any]) -> dict[str, Any]:
         """Update an exercise's details"""
         exercise_id = args.get("exercise_id")
         name = args.get("name")
@@ -1740,7 +1740,7 @@ class ToolExecutor:
             "exercise_id": str(exercise.id)
         }
 
-    async def _bulk_update_exercises(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _bulk_update_exercises(self, args: dict[str, Any]) -> dict[str, Any]:
         """Update multiple exercises in a single transaction."""
         updates = args.get("updates", [])
 
@@ -1800,7 +1800,7 @@ class ToolExecutor:
             "message": f"Updated {updated_count} exercises" + (f" ({len(errors)} errors)" if errors else "")
         }
 
-    async def _delete_exercise(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _delete_exercise(self, args: dict[str, Any]) -> dict[str, Any]:
         """Delete an exercise from a training day"""
         exercise_id = args.get("exercise_id")
 
@@ -1828,7 +1828,7 @@ class ToolExecutor:
             "message": f"Deleted exercise '{exercise_name}'"
         }
 
-    async def _mark_day_status(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _mark_day_status(self, args: dict[str, Any]) -> dict[str, Any]:
         """Change the status of a training day"""
         day_id = args.get("day_id")
         status = args.get("status")
@@ -1865,7 +1865,7 @@ class ToolExecutor:
             "day_name": day.name
         }
 
-    async def _delete_day_from_week(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _delete_day_from_week(self, args: dict[str, Any]) -> dict[str, Any]:
         """Delete a specific training day from a week"""
         day_id = args.get("day_id")
 
@@ -1911,7 +1911,7 @@ class ToolExecutor:
             "plan_name": plan_name
         }
 
-    async def _search_workout_memory(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _search_workout_memory(self, args: dict[str, Any]) -> dict[str, Any]:
         """Search workout history using RAG"""
         from app.providers import get_embedding_provider, get_rag_provider
 
@@ -1955,11 +1955,12 @@ class ToolExecutor:
             logger.error(f"RAG search failed: {e}")
             return {"error": f"Search failed: {str(e)}"}
 
-    async def _store_fitness_insight(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _store_fitness_insight(self, args: dict[str, Any]) -> dict[str, Any]:
         """Store fitness insight in RAG"""
-        from app.providers import get_embedding_provider, get_rag_provider
         import uuid
         from datetime import datetime
+
+        from app.providers import get_embedding_provider, get_rag_provider
 
         content = args.get("content")
         category = args.get("category", "note")
@@ -2002,7 +2003,7 @@ class ToolExecutor:
             logger.error(f"RAG store failed: {e}")
             return {"error": f"Store failed: {str(e)}"}
 
-    async def _get_exercise_alternatives(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _get_exercise_alternatives(self, args: dict[str, Any]) -> dict[str, Any]:
         """Find alternative exercises that work the same muscle groups"""
         from app.providers import get_graph_provider
 
@@ -2072,7 +2073,7 @@ class ToolExecutor:
             logger.error(f"Graph query failed: {e}")
             return {"error": f"Failed to find alternatives: {str(e)}"}
 
-    async def _get_exercise_progression(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _get_exercise_progression(self, args: dict[str, Any]) -> dict[str, Any]:
         """Get the progression path for an exercise"""
         from app.providers import get_graph_provider
 
@@ -2128,7 +2129,7 @@ class ToolExecutor:
             logger.error(f"Graph query failed: {e}")
             return {"error": f"Failed to find progression: {str(e)}"}
 
-    async def _get_muscles_for_exercise(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _get_muscles_for_exercise(self, args: dict[str, Any]) -> dict[str, Any]:
         """Get which muscle groups an exercise targets"""
         from app.providers import get_graph_provider
 
@@ -2190,7 +2191,7 @@ class ToolExecutor:
             logger.error(f"Graph query failed: {e}")
             return {"error": f"Failed to find muscles: {str(e)}"}
 
-    async def _get_exercises_for_muscle(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _get_exercises_for_muscle(self, args: dict[str, Any]) -> dict[str, Any]:
         """Find exercises that target a specific muscle group"""
         from app.providers import get_graph_provider
 

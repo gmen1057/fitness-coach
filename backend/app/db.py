@@ -6,7 +6,7 @@ Provides:
 - get_db() dependency for FastAPI routes
 - init_db() for table creation
 """
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.config import get_settings
 
@@ -70,15 +70,15 @@ async def init_db():
     """
     # Import models to ensure they're registered with Base.metadata
     from app.models.fitness import (  # noqa: F401
-        WorkoutPlan,
-        PlanWeek,
-        PlanDay,
-        DayWarmup,
-        DayExercise,
-        WorkoutLog,
-        ExerciseResult,
         ChatMessage,
+        DayExercise,
+        DayWarmup,
+        ExerciseResult,
+        PlanDay,
+        PlanWeek,
         UserSession,
+        WorkoutLog,
+        WorkoutPlan,
     )
 
     async with engine.begin() as conn:

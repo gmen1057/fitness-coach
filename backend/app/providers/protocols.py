@@ -4,8 +4,9 @@ Provider protocols for AI, Embedding, and RAG providers.
 Uses typing.Protocol for duck typing flexibility with @runtime_checkable
 for isinstance() checks.
 """
-from typing import Protocol, AsyncIterator, runtime_checkable
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
+from typing import Protocol, runtime_checkable
 
 
 @dataclass
