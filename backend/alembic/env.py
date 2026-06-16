@@ -28,6 +28,9 @@ from app.models.fitness import (
     ExerciseResult,
     ChatMessage,
     UserSession,
+    InjuryEpisode,
+    BloodMarker,
+    BodyWeightLog,
 )
 
 # Alembic Config object

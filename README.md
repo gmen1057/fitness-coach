@@ -17,6 +17,8 @@ Open-source AI fitness coach with multi-provider support. Build personalized wor
 - **Smart Plan Creation**: Efficient full-plan creation in a single tool call
 - **Workout Management**: Create, track, and adapt workout plans
 - **Progress Tracking**: Statistics, streaks, and completion metrics
+- **Health & Injury Tracking**: Track physical constraints and automatically avoid exercises that target injured areas
+- **Blood Biomarker Logs**: Log blood panels (e.g., lipids, hormone trends) to help the AI detect overtraining and optimize recovery
 - **Offline Support**: PWA with service worker caching
 - **Memory System**: Optional RAG for personalized long-term context
 - **Docker Ready**: Production-grade containerized deployment

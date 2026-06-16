@@ -7,6 +7,7 @@ with any LLM provider (Anthropic, OpenAI, xAI, etc.).
 
 import json
 import logging
+import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 from uuid import UUID
@@ -16,8 +17,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.fitness import (
+    BloodMarker,
+    BodyWeightLog,
     DayExercise,
     ExerciseResult,
+    InjuryEpisode,
     PlanDay,
     PlanWeek,
     WorkoutLog,
@@ -641,6 +645,194 @@ TOOLS = [
             },
             "required": ["muscle_group"]
         }
+    },
+    {
+        "name": "get_workout_history",
+        "description": "Get the user's full training history across ALL plans. Returns completed workouts newest-first.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "description": "Max number of past workouts to return (default 20)",
+                    "default": 20
+                }
+            }
+        }
+    },
+    {
+        "name": "get_user_exercise_progression",
+        "description": "Get how a specific exercise progressed over time for the user (planned weight vs actual weight). Matches case-insensitively and partially.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "exercise_name": {
+                    "type": "string",
+                    "description": "Full or partial exercise name to track"
+                }
+            },
+            "required": ["exercise_name"]
+        }
+    },
+    {
+        "name": "log_exercise_results",
+        "description": "Record actual per-exercise performance (sets, reps, weight) for a completed workout.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "day_id": {
+                    "type": "string",
+                    "description": "UUID of the plan day the results belong to"
+                },
+                "results": {
+                    "type": "array",
+                    "description": "List of result objects per exercise",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "exercise_id": {
+                                "type": "string",
+                                "description": "UUID of the exercise (optional if name is given)"
+                            },
+                            "exercise_name": {
+                                "type": "string",
+                                "description": "Name of the exercise (optional if ID is given)"
+                            },
+                            "actual_sets": {
+                                "type": "integer",
+                                "description": "Actual number of sets completed"
+                            },
+                            "actual_reps": {
+                                "type": "string",
+                                "description": "Actual reps completed (e.g. '8')"
+                            },
+                            "actual_weight": {
+                                "type": "string",
+                                "description": "Actual weight used (e.g. '50 кг')"
+                            },
+                            "feeling": {
+                                "type": "string",
+                                "description": "Subjective feeling: 'easy', 'ok', 'hard', 'failed'"
+                            },
+                            "notes": {
+                                "type": "string",
+                                "description": "Optional exercise comments"
+                            }
+                        }
+                    }
+                }
+            },
+            "required": ["day_id", "results"]
+        }
+    },
+    {
+        "name": "get_body_metrics",
+        "description": "Get the user's bodyweight history trend.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "description": "Max number of bodyweight entries to return (default 12)",
+                    "default": 12
+                }
+            }
+        }
+    },
+    {
+        "name": "log_body_weight",
+        "description": "Record a new bodyweight measurement.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "weight_kg": {
+                    "type": "number",
+                    "description": "Bodyweight in kilograms (e.g. 82.5)"
+                },
+                "body_fat_pct": {
+                    "type": "number",
+                    "description": "Optional body-fat percentage"
+                },
+                "notes": {
+                    "type": "string",
+                    "description": "Optional notes (e.g. 'morning weight')"
+                }
+            },
+            "required": ["weight_kg"]
+        }
+    },
+    {
+        "name": "get_health_profile",
+        "description": "Get structured injuries and health constraints for safe programming. Consult this to avoid loading injured areas.",
+        "parameters": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "name": "get_blood_markers",
+        "description": "Get blood test panel results — the latest full panel, or the history trend of one marker.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "marker": {
+                    "type": "string",
+                    "description": "Optional marker key (e.g. 'HDL', 'testosterone') to get its trend history. Empty = latest full panel."
+                }
+            }
+        }
+    },
+    {
+        "name": "log_blood_markers",
+        "description": "Record a new blood test panel.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "measured_at": {
+                    "type": "string",
+                    "description": "Date of draw, ISO format YYYY-MM-DD"
+                },
+                "markers": {
+                    "type": "array",
+                    "description": "List of markers with value, unit, ref range",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "marker": {
+                                "type": "string",
+                                "description": "Canonical key, e.g. 'HDL'"
+                            },
+                            "display_name": {
+                                "type": "string",
+                                "description": "Friendly label, e.g. 'HDL Cholesterol'"
+                            },
+                            "value": {
+                                "type": "string",
+                                "description": "Measured value (e.g. 1.2 or '> 120')"
+                            },
+                            "unit": {
+                                "type": "string",
+                                "description": "Unit of measurement (e.g. 'mmol/L')"
+                            },
+                            "ref_text": {
+                                "type": "string",
+                                "description": "Reference range"
+                            },
+                            "flag": {
+                                "type": "string",
+                                "description": "low | high | normal"
+                            }
+                        },
+                        "required": ["marker", "value"]
+                    }
+                },
+                "lab_name": {
+                    "type": "string",
+                    "description": "Optional lab name"
+                }
+            },
+            "required": ["measured_at", "markers"]
+        }
     }
 ]
 
@@ -704,6 +896,14 @@ class ToolExecutor:
             "get_exercise_progression": self._get_exercise_progression,
             "get_muscles_for_exercise": self._get_muscles_for_exercise,
             "get_exercises_for_muscle": self._get_exercises_for_muscle,
+            "get_workout_history": self._get_workout_history,
+            "get_user_exercise_progression": self._get_user_exercise_progression,
+            "log_exercise_results": self._log_exercise_results,
+            "get_body_metrics": self._get_body_metrics,
+            "log_body_weight": self._log_body_weight,
+            "get_health_profile": self._get_health_profile,
+            "get_blood_markers": self._get_blood_markers,
+            "log_blood_markers": self._log_blood_markers,
         }
 
         handler = handlers.get(tool_name)
@@ -2232,3 +2432,416 @@ class ToolExecutor:
         except Exception as e:
             logger.error(f"Graph query failed: {e}")
             return {"error": f"Failed to find exercises: {str(e)}"}
+
+    async def _get_workout_history(self, args: dict[str, Any]) -> dict[str, Any]:
+        """Get the user's full training history across ALL plans"""
+        limit = args.get("limit", 20)
+        if limit <= 0 or limit > 200:
+            limit = 20
+
+        try:
+            # Get total count
+            total_query = select(func.count(WorkoutLog.id)).where(WorkoutLog.user_id == self.user_id)
+            total_result = await self.db.execute(total_query)
+            total = total_result.scalar() or 0
+
+            # Get logs with plan/day names
+            query = (
+                select(WorkoutLog)
+                .where(WorkoutLog.user_id == self.user_id)
+                .options(
+                    selectinload(WorkoutLog.day)
+                    .selectinload(PlanDay.week)
+                    .selectinload(PlanWeek.plan)
+                )
+                .order_by(WorkoutLog.completed_at.desc())
+                .limit(limit)
+            )
+
+            result = await self.db.execute(query)
+            logs = result.scalars().all()
+
+            workouts = []
+            for log in logs:
+                plan_name = log.day.week.plan.name if log.day and log.day.week and log.day.week.plan else "Unknown Plan"
+                day_name = log.day.name if log.day else "Unknown Day"
+                week_num = log.day.week.week_number if log.day and log.day.week else 0
+                workouts.append({
+                    "completed_at": log.completed_at.isoformat(),
+                    "duration_minutes": log.duration_minutes,
+                    "overall_feeling": log.overall_feeling,
+                    "notes": log.notes,
+                    "day_name": day_name,
+                    "week_number": week_num,
+                    "plan_name": plan_name,
+                })
+
+            return {
+                "total_completed_workouts": total,
+                "returned": len(workouts),
+                "workouts": workouts,
+            }
+        except Exception as e:
+            logger.error(f"get_workout_history failed: {e}")
+            return {"error": str(e)}
+
+    async def _get_user_exercise_progression(self, args: dict[str, Any]) -> dict[str, Any]:
+        """Get user's recorded weights and performance progression for a specific exercise"""
+        exercise_name = args.get("exercise_name")
+        if not exercise_name or not exercise_name.strip():
+            return {"error": "exercise_name is required"}
+
+        try:
+            # Query exercise results matching name case-insensitively
+            query = (
+                select(ExerciseResult)
+                .join(DayExercise, DayExercise.id == ExerciseResult.exercise_id)
+                .join(WorkoutLog, WorkoutLog.id == ExerciseResult.workout_log_id)
+                .where(WorkoutLog.user_id == self.user_id)
+                .where(func.lower(DayExercise.name).like(f"%{exercise_name.strip().lower()}%"))
+                .order_by(WorkoutLog.completed_at.asc())
+            )
+
+            result = await self.db.execute(query)
+            results = result.scalars().all()
+
+            progression = []
+            for r in results:
+                progression.append({
+                    "exercise_name": exercise_name,
+                    "completed_at": r.workout_log.completed_at.isoformat() if r.workout_log else None,
+                    "planned_sets": r.planned_sets,
+                    "planned_reps": r.planned_reps,
+                    "planned_weight": r.planned_weight,
+                    "actual_sets": r.actual_sets,
+                    "actual_reps": r.actual_reps,
+                    "actual_weight": r.actual_weight,
+                    "feeling": r.feeling,
+                    "notes": r.notes,
+                })
+
+            return {
+                "exercise_query": exercise_name,
+                "data_points": len(progression),
+                "progression": progression,
+            }
+        except Exception as e:
+            logger.error(f"get_user_exercise_progression failed: {e}")
+            return {"error": str(e)}
+
+    async def _log_exercise_results(self, args: dict[str, Any]) -> dict[str, Any]:
+        """Record actual performance for exercises in a day's workout"""
+        day_id_str = args.get("day_id")
+        results = args.get("results")
+
+        if not day_id_str or not results:
+            return {"error": "day_id and results list are required"}
+
+        try:
+            day_uuid = UUID(day_id_str)
+        except ValueError:
+            return {"error": "Invalid day_id format"}
+
+        try:
+            # Get latest workout log for this day
+            log_query = (
+                select(WorkoutLog)
+                .where(WorkoutLog.day_id == day_uuid)
+                .where(WorkoutLog.user_id == self.user_id)
+                .order_by(WorkoutLog.completed_at.desc())
+                .limit(1)
+            )
+            log_res = await self.db.execute(log_query)
+            log = log_res.scalar()
+            if not log:
+                return {"error": "No workout log for this day yet — call complete_workout_day first."}
+
+            saved = []
+            errors = []
+            for idx, r in enumerate(results):
+                ex_id_str = r.get("exercise_id")
+                ex_name = r.get("exercise_name")
+
+                ex_id = None
+                if ex_id_str:
+                    try:
+                        ex_id = UUID(ex_id_str)
+                    except ValueError:
+                        errors.append({"index": idx, "error": "Invalid exercise_id format"})
+                        continue
+                elif ex_name:
+                    # Lookup exercise by name on this day
+                    ex_query = (
+                        select(DayExercise)
+                        .where(DayExercise.day_id == day_uuid)
+                        .where(func.lower(DayExercise.name).like(f"%{ex_name.strip().lower()}%"))
+                        .limit(1)
+                    )
+                    ex_res = await self.db.execute(ex_query)
+                    found_ex = ex_res.scalar()
+                    if found_ex:
+                        ex_id = found_ex.id
+                    else:
+                        errors.append({"index": idx, "error": f"Exercise '{ex_name}' not found on this day"})
+                        continue
+                else:
+                    errors.append({"index": idx, "error": "Either exercise_id or exercise_name must be provided"})
+                    continue
+
+                # Fetch original planned stats
+                planned_query = select(DayExercise).where(DayExercise.id == ex_id)
+                planned_res = await self.db.execute(planned_query)
+                p = planned_res.scalar()
+                planned_sets = p.sets if p else None
+                planned_reps = p.reps if p else None
+                planned_weight = p.weight if p else None
+
+                # Create result entry
+                res_entry = ExerciseResult(
+                    id=uuid.uuid4(),
+                    workout_log_id=log.id,
+                    exercise_id=ex_id,
+                    planned_sets=planned_sets,
+                    planned_reps=planned_reps,
+                    planned_weight=planned_weight,
+                    actual_sets=r.get("actual_sets"),
+                    actual_reps=r.get("actual_reps"),
+                    actual_weight=r.get("actual_weight"),
+                    feeling=r.get("feeling"),
+                    notes=r.get("notes"),
+                )
+                self.db.add(res_entry)
+                saved.append({"exercise_id": str(ex_id), "actual_weight": r.get("actual_weight")})
+
+            await self.db.commit()
+
+            payload = {"saved_count": len(saved), "saved": saved}
+            if errors:
+                payload["errors"] = errors
+            return payload
+        except Exception as e:
+            await self.db.rollback()
+            logger.error(f"log_exercise_results failed: {e}")
+            return {"error": str(e)}
+
+    async def _get_body_metrics(self, args: dict[str, Any]) -> dict[str, Any]:
+        """Get the user's bodyweight history trend"""
+        limit = args.get("limit", 12)
+        if limit <= 0 or limit > 100:
+            limit = 12
+
+        try:
+            query = (
+                select(BodyWeightLog)
+                .where(BodyWeightLog.user_id == self.user_id)
+                .order_by(BodyWeightLog.logged_at.desc())
+                .limit(limit)
+            )
+            result = await self.db.execute(query)
+            logs = result.scalars().all()
+
+            weights = []
+            for log in logs:
+                weights.append({
+                    "weight_kg": log.weight_kg,
+                    "body_fat_pct": log.body_fat_pct,
+                    "notes": log.notes,
+                    "logged_at": log.logged_at.isoformat(),
+                })
+
+            return {
+                "bodyweight_log": weights,
+            }
+        except Exception as e:
+            logger.error(f"get_body_metrics failed: {e}")
+            return {"error": str(e)}
+
+    async def _log_body_weight(self, args: dict[str, Any]) -> dict[str, Any]:
+        """Record a new bodyweight measurement"""
+        weight_kg = args.get("weight_kg")
+        body_fat_pct = args.get("body_fat_pct")
+        notes = args.get("notes")
+
+        if not weight_kg or weight_kg <= 0 or weight_kg > 400:
+            return {"error": "weight_kg must be a realistic positive number"}
+
+        try:
+            log = BodyWeightLog(
+                id=uuid.uuid4(),
+                user_id=self.user_id,
+                weight_kg=weight_kg,
+                body_fat_pct=body_fat_pct,
+                notes=notes,
+                logged_at=datetime.utcnow()
+            )
+            self.db.add(log)
+            await self.db.commit()
+            return {"logged": True, "weight_kg": weight_kg}
+        except Exception as e:
+            await self.db.rollback()
+            logger.error(f"log_body_weight failed: {e}")
+            return {"error": str(e)}
+
+    async def _get_health_profile(self, args: dict[str, Any]) -> dict[str, Any]:
+        """Get active and past injuries for safe programming"""
+        try:
+            query = (
+                select(InjuryEpisode)
+                .where(InjuryEpisode.user_id == self.user_id)
+                .order_by(InjuryEpisode.occurred_at.desc())
+            )
+            result = await self.db.execute(query)
+            episodes = result.scalars().all()
+
+            injuries = []
+            for ep in episodes:
+                injuries.append({
+                    "body_part": ep.body_part,
+                    "description": ep.description,
+                    "severity": ep.severity,
+                    "status": ep.status.value if hasattr(ep.status, "value") else str(ep.status),
+                    "occurred_at": ep.occurred_at.isoformat() if ep.occurred_at else None,
+                    "resolved_at": ep.resolved_at.isoformat() if ep.resolved_at else None,
+                    "exercises_to_avoid": ep.exercises_to_avoid,
+                    "notes": ep.notes,
+                })
+
+            return {
+                "injuries": injuries,
+            }
+        except Exception as e:
+            logger.error(f"get_health_profile failed: {e}")
+            return {"error": str(e)}
+
+    async def _get_blood_markers(self, args: dict[str, Any]) -> dict[str, Any]:
+        """Get blood test panel results — the latest full panel, or the history trend of one marker"""
+        marker = args.get("marker")
+
+        try:
+            if marker and marker.strip():
+                query = (
+                    select(BloodMarker)
+                    .where(BloodMarker.user_id == self.user_id)
+                    .where(func.lower(BloodMarker.marker) == marker.strip().lower())
+                    .order_by(BloodMarker.measured_at.asc())
+                )
+                result = await self.db.execute(query)
+                rows = result.scalars().all()
+                trend = []
+                for r in rows:
+                    trend.append({
+                        "marker": r.marker,
+                        "display_name": r.display_name,
+                        "value_text": r.value_text,
+                        "value_num": r.value_num,
+                        "unit": r.unit,
+                        "ref_text": r.ref_text,
+                        "flag": r.flag,
+                        "measured_at": r.measured_at.isoformat() if r.measured_at else None,
+                        "lab_name": r.lab_name,
+                    })
+                return {"marker": marker, "data_points": len(trend), "trend": trend}
+
+            # If no marker, return latest date's full panel
+            last_date_query = select(func.max(BloodMarker.measured_at)).where(BloodMarker.user_id == self.user_id)
+            last_date_res = await self.db.execute(last_date_query)
+            latest_date = last_date_res.scalar()
+
+            if latest_date is None:
+                return {"latest_date": None, "panel": [], "note": "No lab results recorded yet."}
+
+            panel_query = (
+                select(BloodMarker)
+                .where(BloodMarker.user_id == self.user_id)
+                .where(BloodMarker.measured_at == latest_date)
+                .order_by((BloodMarker.flag != "normal").desc(), BloodMarker.marker)
+            )
+            panel_res = await self.db.execute(panel_query)
+            rows = panel_res.scalars().all()
+
+            panel = []
+            out_of_range = []
+            for r in rows:
+                item = {
+                    "marker": r.marker,
+                    "display_name": r.display_name,
+                    "value_text": r.value_text,
+                    "value_num": r.value_num,
+                    "unit": r.unit,
+                    "ref_text": r.ref_text,
+                    "flag": r.flag,
+                    "measured_at": r.measured_at.isoformat() if r.measured_at else None,
+                }
+                panel.append(item)
+                if r.flag and r.flag != "normal":
+                    out_of_range.append(item)
+
+            return {
+                "latest_date": latest_date.isoformat(),
+                "out_of_range": out_of_range,
+                "panel": panel,
+            }
+        except Exception as e:
+            logger.error(f"get_blood_markers failed: {e}")
+            return {"error": str(e)}
+
+    async def _log_blood_markers(self, args: dict[str, Any]) -> dict[str, Any]:
+        """Record a new blood test panel"""
+        measured_at_str = args.get("measured_at")
+        markers = args.get("markers")
+        lab_name = args.get("lab_name")
+
+        if not measured_at_str or not markers:
+            return {"error": "measured_at and markers list are required"}
+
+        try:
+            measured_date = datetime.strptime(measured_at_str.strip()[:10], "%Y-%m-%d").date()
+        except ValueError:
+            return {"error": "measured_at must be YYYY-MM-DD"}
+
+        saved = []
+        errors = []
+        try:
+            for idx, m in enumerate(markers):
+                key = (m.get("marker") or "").strip()
+                if not key:
+                    errors.append({"index": idx, "error": "missing marker key"})
+                    continue
+                raw_val = m.get("value")
+                value_text = str(raw_val) if raw_val is not None else None
+                value_num = None
+                if isinstance(raw_val, (int, float)):
+                    value_num = float(raw_val)
+                elif isinstance(raw_val, str):
+                    cleaned = raw_val.replace(",", ".").lstrip("<>≤≥ ").strip()
+                    try:
+                        value_num = float(cleaned)
+                    except ValueError:
+                        value_num = None
+
+                db_marker = BloodMarker(
+                    id=uuid.uuid4(),
+                    user_id=self.user_id,
+                    marker=key,
+                    display_name=m.get("display_name"),
+                    value_num=value_num,
+                    value_text=value_text,
+                    unit=m.get("unit"),
+                    ref_text=m.get("ref_text"),
+                    flag=m.get("flag") or "normal",
+                    measured_at=measured_date,
+                    lab_name=lab_name,
+                    created_at=datetime.utcnow()
+                )
+                self.db.add(db_marker)
+                saved.append(key)
+
+            await self.db.commit()
+            payload = {"saved_count": len(saved), "saved": saved, "measured_at": measured_at_str}
+            if errors:
+                payload["errors"] = errors
+            return payload
+        except Exception as e:
+            await self.db.rollback()
+            logger.error(f"log_blood_markers failed: {e}")
+            return {"error": str(e)}

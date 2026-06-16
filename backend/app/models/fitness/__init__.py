@@ -18,11 +18,18 @@ from app.models.fitness.workout_plan import (
     WorkoutPlan,
     WorkoutStatus,
 )
+from app.models.fitness.profile import (
+    InjuryStatus,
+    InjuryEpisode,
+    BloodMarker,
+    BodyWeightLog,
+)
 
 __all__ = [
     # Enums
     "WorkoutStatus",
     "FeelingLevel",
+    "InjuryStatus",
     # Workout Plan models
     "WorkoutPlan",
     "PlanWeek",
@@ -32,6 +39,10 @@ __all__ = [
     # Workout Log models
     "WorkoutLog",
     "ExerciseResult",
+    # Profile & Health
+    "InjuryEpisode",
+    "BloodMarker",
+    "BodyWeightLog",
     # Chat & Sessions
     "ChatMessage",
     "UserSession",

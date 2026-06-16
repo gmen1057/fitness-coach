@@ -70,10 +70,13 @@ async def init_db():
     """
     # Import models to ensure they're registered with Base.metadata
     from app.models.fitness import (  # noqa: F401
+        BloodMarker,
+        BodyWeightLog,
         ChatMessage,
         DayExercise,
         DayWarmup,
         ExerciseResult,
+        InjuryEpisode,
         PlanDay,
         PlanWeek,
         UserSession,
