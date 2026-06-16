@@ -10,6 +10,7 @@ Supports:
 import json
 import logging
 from collections.abc import AsyncIterator
+from uuid import uuid4
 
 from google import genai
 from google.genai import types
@@ -24,6 +25,7 @@ class GeminiProvider(AIProvider):
     Google Gemini provider implementing the AIProvider protocol.
 
     Preserves state across tool calls to satisfy Gemini's thought_signature requirement.
+    Is bound per-request via get_ai_provider() to ensure thread-safety.
     """
 
     THINKING_MODELS = {"gemini-2.0", "gemini-2.5"}
@@ -51,6 +53,7 @@ class GeminiProvider(AIProvider):
         # Keep state for active chat session to handle consecutive tool calls properly
         self._current_chat = None
         self._tool_calls_names: dict[str, str] = {}
+        self._tool_calls_original_ids: dict[str, str | None] = {}
 
     @property
     def model_name(self) -> str:
@@ -94,15 +97,15 @@ class GeminiProvider(AIProvider):
         - "tool_use": Tool call started
         - "done": Stream complete
         """
-        is_continuation = False
-        if messages and isinstance(messages[-1].content, list) and len(messages[-1].content) > 0:
-            is_continuation = messages[-1].content[0].get("type") == "tool_result"
+        # Since GeminiProvider is created per-request, if _current_chat is None,
+        # it is guaranteed to be the start of a new chat turn (not a tool callback loop).
+        is_continuation = self._current_chat is not None
 
         try:
             if not is_continuation:
-                # Reset state for a new conversational turn
-                self._current_chat = None
+                # Reset helper mapping state
                 self._tool_calls_names.clear()
+                self._tool_calls_original_ids.clear()
 
                 # Build clean history (skip past tool uses/results to avoid thought_signature errors)
                 gemini_history = []
@@ -158,15 +161,24 @@ class GeminiProvider(AIProvider):
                 )
                 next_input = messages[-1].content
             else:
-                # Continue previous chat session with function responses
-                if not self._current_chat:
-                    raise RuntimeError("Received tool results but no active chat session is found")
-
+                # Continue previous chat session with function responses.
+                # We extract the latest tool responses from the messages list.
                 response_parts = []
-                for block in messages[-1].content:
+                latest_tool_results_msg = None
+
+                for msg in reversed(messages):
+                    if isinstance(msg.content, list) and len(msg.content) > 0 and msg.content[0].get("type") == "tool_result":
+                        latest_tool_results_msg = msg
+                        break
+
+                if not latest_tool_results_msg:
+                    raise RuntimeError("Received tool callback trigger but no tool results found in messages history")
+
+                for block in latest_tool_results_msg.content:
                     if block.get("type") == "tool_result":
                         tid = block["tool_use_id"]
                         tool_name = self._tool_calls_names.get(tid, "tool")
+                        original_id = self._tool_calls_original_ids.get(tid)
 
                         try:
                             res_data = json.loads(block["content"])
@@ -179,7 +191,7 @@ class GeminiProvider(AIProvider):
                         response_parts.append(
                             types.Part(
                                 function_response=types.FunctionResponse(
-                                    id=tid,
+                                    id=original_id,  # Use original ID (could be None)
                                     name=tool_name,
                                     response=res_data,
                                 )
@@ -200,12 +212,16 @@ class GeminiProvider(AIProvider):
                                 # Tool call block
                                 elif getattr(part, "function_call", None):
                                     fc = part.function_call
-                                    # Save tool name so we can map it back in function response
-                                    self._tool_calls_names[fc.id] = fc.name
+
+                                    # Fallback to unique id if fc.id is missing to support parallel execution in agent loop
+                                    call_id = fc.id or f"call_{fc.name}_{uuid4().hex[:6]}"
+                                    self._tool_calls_names[call_id] = fc.name
+                                    self._tool_calls_original_ids[call_id] = fc.id
+
                                     yield CompletionChunk(
                                         type="tool_use",
                                         tool_call=ToolCall(
-                                            id=fc.id,
+                                            id=call_id,
                                             name=fc.name,
                                             arguments=dict(fc.args) if fc.args else {},
                                         )
@@ -225,66 +241,53 @@ class GeminiProvider(AIProvider):
         # google-genai client doesn't require explicit close
         pass
 
+    def _dict_to_schema(self, prop: dict) -> types.Schema:
+        """Convert a JSON schema dict to google.genai types.Schema recursively."""
+        p_type = prop.get("type", "string").upper()
+
+        if p_type == "INTEGER":
+            t_type = types.Type.INTEGER
+        elif p_type == "NUMBER":
+            t_type = types.Type.NUMBER
+        elif p_type == "BOOLEAN":
+            t_type = types.Type.BOOLEAN
+        elif p_type == "ARRAY":
+            t_type = types.Type.ARRAY
+        elif p_type == "OBJECT":
+            t_type = types.Type.OBJECT
+        else:
+            t_type = types.Type.STRING
+
+        kwargs = {
+            "type": t_type,
+            "description": prop.get("description", ""),
+        }
+
+        if t_type == types.Type.OBJECT and "properties" in prop:
+            properties = {}
+            for name, nested_prop in prop["properties"].items():
+                properties[name] = self._dict_to_schema(nested_prop)
+            kwargs["properties"] = properties
+            if "required" in prop:
+                kwargs["required"] = prop["required"]
+
+        elif t_type == types.Type.ARRAY and "items" in prop:
+            kwargs["items"] = self._dict_to_schema(prop["items"])
+
+        return types.Schema(**kwargs)
+
     def _convert_tools(self, tools: list[dict]) -> list[types.Tool]:
         """Convert universal tool format to Gemini SDK tool format."""
         functions = []
         for t in tools:
-            # Reconstruct parameter definitions into schema
             params = t.get("parameters", {})
-            properties = {}
-            for name, prop in params.get("properties", {}).items():
-                p_type = prop.get("type", "string").upper()
-                # Translate basic types
-                if p_type == "INTEGER":
-                    t_type = types.Type.INTEGER
-                elif p_type == "NUMBER":
-                    t_type = types.Type.NUMBER
-                elif p_type == "BOOLEAN":
-                    t_type = types.Type.BOOLEAN
-                elif p_type == "ARRAY":
-                    t_type = types.Type.ARRAY
-                elif p_type == "OBJECT":
-                    t_type = types.Type.OBJECT
-                else:
-                    t_type = types.Type.STRING
-
-                schema_kwargs = {
-                    "type": t_type,
-                    "description": prop.get("description", ""),
-                }
-
-                # Handle nested items for array
-                if t_type == types.Type.ARRAY and "items" in prop:
-                    items_prop = prop["items"]
-                    ip_type = items_prop.get("type", "string").upper()
-                    if ip_type == "OBJECT":
-                        # Simplification for complex object structures
-                        nested_props = {}
-                        for n_name, n_prop in items_prop.get("properties", {}).items():
-                            nested_props[n_name] = types.Schema(
-                                type=types.Type.STRING,  # Fallback to string for nested items
-                                description=n_prop.get("description", "")
-                            )
-                        schema_kwargs["items"] = types.Schema(
-                            type=types.Type.OBJECT,
-                            properties=nested_props
-                        )
-                    else:
-                        schema_kwargs["items"] = types.Schema(
-                            type=types.Type.STRING,  # Fallback to string
-                        )
-
-                properties[name] = types.Schema(**schema_kwargs)
+            schema = self._dict_to_schema(params)
 
             functions.append(
                 types.FunctionDeclaration(
                     name=t["name"],
                     description=t["description"],
-                    parameters=types.Schema(
-                        type=types.Type.OBJECT,
-                        properties=properties,
-                        required=params.get("required", []),
-                    )
+                    parameters=schema
                 )
             )
 

@@ -25,9 +25,6 @@ class ProviderConfigError(Exception):
 
 
 # Thread-safe singletons
-_ai_provider: AIProvider | None = None
-_ai_provider_lock = threading.Lock()
-
 _embedding_provider: EmbeddingProvider | None = None
 _embedding_provider_lock = threading.Lock()
 
@@ -48,23 +45,20 @@ def _get_settings() -> "Settings":
 
 def get_ai_provider() -> AIProvider:
     """
-    Get AI provider instance (thread-safe singleton).
+    Get AI provider instance.
 
-    Returns cached instance or creates new one based on settings.
+    CRITICAL WARNING: This function MUST return a new instance of AIProvider on each call.
+    Do NOT globally cache or singleton-ize the AIProvider.
+    Why: GeminiProvider preserves dialog and tool state (like self._current_chat) to bypass
+    thought_signature validation errors. Caching it globally will lead to state leaks between
+    requests and parallel users. Because FitnessAgent is created per-request, calling this
+    method in FitnessAgent.__init__ binds the AIProvider safely to the current request scope.
 
     Raises:
         ProviderNotAvailableError: If provider package not installed
         ProviderConfigError: If required API key missing
     """
-    global _ai_provider
-
-    if _ai_provider is None:
-        with _ai_provider_lock:
-            # Double-check locking
-            if _ai_provider is None:
-                _ai_provider = _create_ai_provider()
-
-    return _ai_provider
+    return _create_ai_provider()
 
 
 def _create_ai_provider() -> AIProvider:
@@ -307,11 +301,7 @@ async def _create_graph_provider() -> GraphProvider:
 
 async def cleanup_providers() -> None:
     """Cleanup all provider resources. Call on shutdown."""
-    global _ai_provider, _embedding_provider, _rag_provider, _rag_initialized, _graph_provider, _graph_initialized
-
-    if _ai_provider is not None:
-        await _ai_provider.close()
-        _ai_provider = None
+    global _embedding_provider, _rag_provider, _rag_initialized, _graph_provider, _graph_initialized
 
     if _embedding_provider is not None:
         await _embedding_provider.close()
@@ -330,9 +320,8 @@ async def cleanup_providers() -> None:
 
 def reset_providers() -> None:
     """Reset all provider singletons. Used for testing."""
-    global _ai_provider, _embedding_provider, _rag_provider, _rag_initialized, _graph_provider, _graph_initialized
+    global _embedding_provider, _rag_provider, _rag_initialized, _graph_provider, _graph_initialized
 
-    _ai_provider = None
     _embedding_provider = None
     _rag_provider = None
     _rag_initialized = False
