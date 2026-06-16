@@ -10,10 +10,10 @@ Open-source AI fitness coach with multi-provider support. Build personalized wor
 
 ## Features
 
-- **Multi-Provider AI**: Choose Anthropic Claude, OpenAI GPT, or self-hosted Ollama
+- **Multi-Provider AI**: Choose Google Gemini, Anthropic Claude, OpenAI GPT, or self-hosted Ollama
 - **27 MCP Tools**: Comprehensive workout management with parallel execution
 - **Graph Knowledge Base**: Exercise relationships, alternatives, and progressions
-- **Conversational Coaching**: Natural language chat with tool-calling capabilities
+- **Conversational Coaching**: Natural language chat with Extended Thinking (reasoning) and tool-calling capabilities
 - **Smart Plan Creation**: Efficient full-plan creation in a single tool call
 - **Workout Management**: Create, track, and adapt workout plans
 - **Progress Tracking**: Statistics, streaks, and completion metrics
@@ -81,18 +81,19 @@ fitness-coach/
 │  (Next.js)  │     │  (FastAPI)  │     │  + pgvector │
 └─────────────┘     └──────┬──────┘     └─────────────┘
                            │
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-        ┌──────────┐ ┌──────────┐ ┌──────────┐
-        │ Anthropic│ │  OpenAI  │ │  Ollama  │
-        │  Claude  │ │   GPT    │ │  (Local) │
-        └──────────┘ └──────────┘ └──────────┘
+        ┌────────────┬─────┴──────┬────────────┐
+        ▼            ▼            ▼            ▼
+  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+  │  Google  │ │ Anthropic│ │  OpenAI  │ │  Ollama  │
+  │  Gemini  │ │  Claude  │ │   GPT    │ │  (Local) │
+  └──────────┘ └──────────┘ └──────────┘ └──────────┘
 ```
 
 ## AI Provider Comparison
 
 | Provider | Status | Best For | Cost | Privacy | Quality |
 |----------|--------|----------|------|---------|---------|
+| **Google Gemini** | ✅ Supported | Production, reasoning | $0.075-2.50/1M tokens | Cloud | Excellent |
 | **Anthropic Claude** | ✅ Default | Production use | $3-15/1M tokens | Cloud | Excellent |
 | **OpenAI GPT-4o** | ✅ Tested | Broad compatibility | $2.50-10/1M tokens | Cloud | Very Good |
 | **Ollama** | ✅ Supported | Privacy, offline | Free (self-hosted) | Full | Good |

@@ -45,6 +45,7 @@ nano .env
 DATABASE_URL=postgresql+asyncpg://user:pass@localhost/fitness_coach
 
 # Choose ONE provider:
+FITNESS_GEMINI_API_KEY=AIzaSy...    # OR
 ANTHROPIC_API_KEY=sk-ant-api03-xxx  # OR
 OPENAI_API_KEY=sk-proj-xxx          # OR
 OLLAMA_BASE_URL=http://localhost:11434
@@ -138,6 +139,27 @@ RAG allows the AI coach to remember your workout history, preferences, and insig
 | "OpenAI API key invalid" | Check FITNESS_OPENAI_API_KEY in .env |
 
 ## AI Provider Configuration
+
+### Google Gemini (Recommended for speed and reasoning)
+
+**Best for:** Production use, fast response time, cost-effective reasoning.
+
+**Setup:**
+1. Get API key: https://aistudio.google.com/
+2. Configure:
+```env
+FITNESS_GEMINI_API_KEY=AIzaSy...
+FITNESS_GEMINI_MODEL=gemini-2.5-flash
+```
+
+**Models:**
+- `gemini-2.5-flash` - Fast, cheap, and capable of complex tool calls (Default)
+- `gemini-2.5-pro` - High intelligence, recommended for complex workouts
+- `gemini-1.5-pro` - Legacy reasoning model
+
+**Cost estimate:** ~$0.005-0.02 per coaching session
+
+---
 
 ### Anthropic Claude (Recommended)
 
