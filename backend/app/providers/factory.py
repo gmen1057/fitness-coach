@@ -111,6 +111,23 @@ def _create_ai_provider() -> AIProvider:
                 model=settings.ollama_model,
             )
 
+        case "gemini":
+            try:
+                from .ai.gemini import GeminiProvider
+            except ImportError:
+                raise ProviderNotAvailableError(
+                    "Gemini not installed. Run: pip install fitness-coach[gemini]"
+                )
+
+            if not settings.gemini_api_key:
+                raise ProviderConfigError("FITNESS_GEMINI_API_KEY required")
+
+            return GeminiProvider(
+                api_key=settings.gemini_api_key.get_secret_value(),
+                model=settings.gemini_model,
+                vertexai=settings.gemini_use_vertex,
+            )
+
         case _:
             raise ProviderConfigError(f"Unknown AI provider: {settings.ai_provider}")
 

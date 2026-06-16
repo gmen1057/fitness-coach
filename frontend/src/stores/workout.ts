@@ -322,24 +322,24 @@ export const useWorkoutStore = create<WorkoutState>()(
         }
       },
 
-      // Complete current day (with offline support)
+      // Complete current day (with optimistic UI and offline support)
       completeDay: async () => {
-        const { currentDay, isOffline } = get();
+        const { currentDay } = get();
         if (!currentDay) return false;
 
-        // If offline, queue the action and update UI optimistically
-        if (isOffline || (typeof window !== 'undefined' && !navigator.onLine)) {
-          set((state) => ({
-            offlineQueue: [...state.offlineQueue, { type: 'complete', dayId: currentDay.id }],
-            currentDay: state.currentDay
-              ? { ...state.currentDay, completed: true }
-              : null,
-          }));
-          get().resetExerciseProgress();
-          return true;
-        }
+        // 1. Optimistically update local UI state immediately
+        set((state) => ({
+          currentDay: state.currentDay ? { ...state.currentDay, completed: true } : null,
+          stats: state.stats ? {
+            ...state.stats,
+            total_workouts: state.stats.total_workouts + 1,
+            this_week_completed: state.stats.this_week_completed + 1,
+            current_streak: state.stats.current_streak + 1,
+          } : null,
+        }));
+        get().resetExerciseProgress();
 
-        set({ isLoading: true, error: null });
+        // 2. Perform network request in background
         try {
           const response = await fetch(
             `${API_BASE}/api/fitness/workouts/complete-day`,
@@ -354,42 +354,34 @@ export const useWorkoutStore = create<WorkoutState>()(
             throw new Error("Failed to complete day");
           }
 
+          // Quietly sync with server data
           await get().fetchCurrentWorkout();
-          get().resetExerciseProgress();
           return true;
         } catch (error) {
+          // If offline or network fails, queue silently for sync
+          console.log("completeDay offline fallback queued:", error);
           set((state) => ({
             offlineQueue: [...state.offlineQueue, { type: 'complete', dayId: currentDay.id }],
-            currentDay: state.currentDay
-              ? { ...state.currentDay, completed: true }
-              : null,
             isOffline: true,
-            isLoading: false,
           }));
-          get().resetExerciseProgress();
           return true;
         }
       },
 
-      // Skip current day (with offline support)
+      // Skip current day (with optimistic UI and offline support)
       skipDay: async (reason?: string) => {
-        const { currentDay, isOffline } = get();
+        const { currentDay } = get();
         if (!currentDay) return false;
 
         const skipReason = reason || "Skipped via app";
 
-        if (isOffline || (typeof window !== 'undefined' && !navigator.onLine)) {
-          set((state) => ({
-            offlineQueue: [...state.offlineQueue, { type: 'skip', dayId: currentDay.id, reason: skipReason }],
-            currentDay: state.currentDay
-              ? { ...state.currentDay, skipped: true }
-              : null,
-          }));
-          get().resetExerciseProgress();
-          return true;
-        }
+        // 1. Optimistically update local UI state immediately
+        set((state) => ({
+          currentDay: state.currentDay ? { ...state.currentDay, skipped: true } : null,
+        }));
+        get().resetExerciseProgress();
 
-        set({ isLoading: true, error: null });
+        // 2. Perform network request in background
         try {
           const response = await fetch(
             `${API_BASE}/api/fitness/workouts/skip-day`,
@@ -407,19 +399,16 @@ export const useWorkoutStore = create<WorkoutState>()(
             throw new Error("Failed to skip day");
           }
 
+          // Quietly sync with server data
           await get().fetchCurrentWorkout();
-          get().resetExerciseProgress();
           return true;
         } catch (error) {
+          // If offline or network fails, queue silently for sync
+          console.log("skipDay offline fallback queued:", error);
           set((state) => ({
             offlineQueue: [...state.offlineQueue, { type: 'skip', dayId: currentDay.id, reason: skipReason }],
-            currentDay: state.currentDay
-              ? { ...state.currentDay, skipped: true }
-              : null,
             isOffline: true,
-            isLoading: false,
           }));
-          get().resetExerciseProgress();
           return true;
         }
       },

@@ -15,6 +15,9 @@ export default function WorkoutPage() {
   }, [fetchCurrentWorkout]);
 
   const handleComplete = async () => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate([150, 100, 150]); // Long triumphant vibration
+    }
     const success = await completeDay();
     if (success) {
       // Navigate back to home
@@ -82,7 +85,12 @@ export default function WorkoutPage() {
                 index={index}
                 isCompleted={exerciseProgress[exercise.id] || false}
                 isActive={index === completedExercises && !allCompleted}
-                onToggle={() => toggleExercise(exercise.id)}
+                onToggle={() => {
+                  if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                    navigator.vibrate(15); // Short haptic tap
+                  }
+                  toggleExercise(exercise.id);
+                }}
               />
             ))}
           </div>

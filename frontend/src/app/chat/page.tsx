@@ -15,6 +15,7 @@ import {
   User,
   Trash2,
   Sparkles,
+  ChevronRight,
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -33,6 +34,7 @@ interface Message {
   content: string;
   isStreaming?: boolean;
   toolCalls?: ToolCall[];
+  thoughts?: string;
 }
 
 export default function ChatPage() {
@@ -150,8 +152,18 @@ export default function ChatPage() {
         trimmedInput,
         null,
         (chunk: StreamChunk) => {
-          if (chunk.type === "content" || chunk.type === "tool_start") {
+          if (chunk.type === "content" || chunk.type === "tool_start" || chunk.type === "thinking") {
             setShowTypingIndicator(false);
+          }
+
+          if (chunk.type === "thinking" && chunk.content) {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantId
+                  ? { ...msg, thoughts: (msg.thoughts || "") + chunk.content }
+                  : msg
+              )
+            );
           }
 
           if (chunk.type === "content" && chunk.content) {
@@ -406,17 +418,33 @@ export default function ChatPage() {
                       : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-tl-md border border-gray-100 dark:border-gray-700 shadow-sm"
                   )}
                 >
+                  {/* Thoughts (for assistant) */}
+                  {message.role === "assistant" && message.thoughts && (
+                    <details className="group px-4 pt-3 pb-2 border-b border-gray-100 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400">
+                      <summary className="flex items-center gap-1.5 cursor-pointer font-medium select-none hover:text-fitness transition-colors list-none outline-none">
+                        <ChevronRight className="w-3.5 h-3.5 transition-transform duration-200 group-open:rotate-90 text-fitness" />
+                        <span>Thinking Process</span>
+                        {message.isStreaming && !message.content && (
+                          <Loader2 className="w-3 h-3 animate-spin text-fitness" />
+                        )}
+                      </summary>
+                      <div className="mt-2 pl-3 border-l-2 border-fitness/20 bg-gray-50 dark:bg-gray-950/40 whitespace-pre-wrap font-mono text-[11px] leading-relaxed max-h-48 overflow-y-auto rounded p-2 text-gray-600 dark:text-gray-300">
+                        {message.thoughts}
+                      </div>
+                    </details>
+                  )}
+
                   {/* Tool calls */}
                   {message.role === "assistant" && message.toolCalls && message.toolCalls.length > 0 && (
                     <div className="px-3 pt-3">
                       {message.toolCalls.map((toolCall) => (
                         <ToolCallBlock
-                          key={toolCall.id}
-                          toolName={toolCall.tool}
-                          input={toolCall.input}
-                          result={toolCall.result}
-                          success={toolCall.success}
-                          isLoading={toolCall.isLoading}
+                           key={toolCall.id}
+                           toolName={toolCall.tool}
+                           input={toolCall.input}
+                           result={toolCall.result}
+                           success={toolCall.success}
+                           isLoading={toolCall.isLoading}
                         />
                       ))}
                     </div>
@@ -470,7 +498,12 @@ export default function ChatPage() {
           </div>
 
           <button
-            onClick={handleSend}
+            onClick={() => {
+              if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                navigator.vibrate([15, 30, 15]); // Tactile haptic tap on send
+              }
+              handleSend();
+            }}
             disabled={!input.trim() || isLoading}
             className={clsx(
               "flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-all",

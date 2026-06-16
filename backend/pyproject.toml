@@ -61,6 +61,10 @@ openai = [
     "openai>=1.50.0",
 ]
 
+gemini = [
+    "google-genai>=1.33.0",
+]
+
 # Vector search for semantic memory
 pgvector = [
     "pgvector>=0.3.0",
@@ -79,7 +83,7 @@ langchain = [
 
 # Bundles
 cloud = [
-    "fitness-coach[anthropic,openai,pgvector]",
+    "fitness-coach[anthropic,openai,gemini,pgvector]",
 ]
 
 local = [
@@ -88,7 +92,7 @@ local = [
 ]
 
 all = [
-    "fitness-coach[anthropic,openai,pgvector,neo4j,langchain]",
+    "fitness-coach[anthropic,openai,gemini,pgvector,neo4j,langchain]",
 ]
 
 # Development tools

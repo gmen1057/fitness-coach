@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     )
 
     # === Provider Selection ===
-    ai_provider: Literal["anthropic", "openai", "ollama"] = "anthropic"
+    ai_provider: Literal["anthropic", "openai", "ollama", "gemini"] = "anthropic"
     embedding_provider: Literal["openai", "ollama", "none"] = "openai"
     rag_provider: Literal["pgvector", "sqlite", "none"] = "pgvector"
     graph_provider: Literal["networkx", "neo4j", "none"] = "networkx"
@@ -43,6 +43,11 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr | None = None
     openai_model: str = "gpt-4o"
     openai_embedding_model: str = "text-embedding-3-small"
+
+    # === Gemini ===
+    gemini_api_key: SecretStr | None = None
+    gemini_model: str = "gemini-2.5-flash"
+    gemini_use_vertex: bool = False
 
     # === Ollama ===
     ollama_base_url: str = "http://localhost:11434"
@@ -84,6 +89,10 @@ class Settings(BaseSettings):
         if self.ai_provider == "openai" and not self.openai_api_key:
             raise ValueError(
                 "FITNESS_OPENAI_API_KEY required when ai_provider=openai"
+            )
+        if self.ai_provider == "gemini" and not self.gemini_api_key:
+            raise ValueError(
+                "FITNESS_GEMINI_API_KEY required when ai_provider=gemini"
             )
 
         # Embedding Provider validation
